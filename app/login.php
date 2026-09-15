@@ -49,8 +49,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <body style="display: flex; align-items: center; justify-content: center; background: radial-gradient(circle at center, #0d1a33 0%, #060a14 100%); min-height: 100vh;">
 
 <div style="width: 100%; max-width: 440px; padding: 20px;">
+    <div style="text-align: center; margin-bottom: 14px;">
+        <a href="landing.php" style="display: inline-flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 600; color: #38bdf8; text-decoration: none; padding: 6px 14px; background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 20px;">
+            ← Ir a la Landing Page Oficial
+        </a>
+    </div>
+
     <div style="background: var(--bg-card); border: 1px solid #1c2e56; border-radius: var(--radius-lg); padding: 36px 30px; box-shadow: var(--shadow-modal); text-align: center;">
-        <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 52px; object-fit: contain; margin-bottom: 16px;">
+        <a href="landing.php">
+            <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 64px; object-fit: contain; margin-bottom: 16px; filter: drop-shadow(0 4px 14px rgba(225, 29, 72, 0.45));">
+        </a>
         <h1 style="font-size: 18px; font-weight: 800; color: #fff; letter-spacing: 0.5px;">Acceso al Sistema Técnico</h1>
         <p style="font-size: 12px; color: var(--text-secondary); margin-top: 4px; margin-bottom: 24px;">Servicio TCS Motriz • Portal de Clientes y Administración</p>
 
