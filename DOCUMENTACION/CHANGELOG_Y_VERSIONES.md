@@ -5,6 +5,26 @@
 
 ### Control de Versiones
 
+#### [v1.2.0-PROD] — 2026-09-15 (Landing Page Oficial, Firmas Digitales y Failsafe)
+*Incorporación de la Landing Page pública de alto impacto, firmas táctiles en pantalla y bloqueo de seguridad failsafe.*
+
+##### 🚀 Nuevas Funcionalidades y Mejoras
+1. **Landing Page Oficial de Ingeniería y Mantenimiento (`app/landing.php`)**:
+   - Integración del logotipo oficial de **TCS Motriz**.
+   - Estética industrial moderna con tema oscuro perimetral (`#040814`, `#0f1c35`, `#0284c7`, `#10b981`, `#e11d48`).
+   - Mockup visual interactivo de telemetría de bahía con gráfico vectorial de elevador de 2 postes.
+   - **Calculadora Interactiva de ROI**: Estimación dinámica del costo financiero por bahía inactiva vs. ahorro garantizado con TCS Motriz.
+   - Catálogo de equipos atendidos, normativas ISO/SAE y contacto directo vía WhatsApp con mensaje preconfigurado.
+   - Optimización SEO con datos estructurados Schema.org (`AutoRepair`) y metadatos Open Graph.
+2. **Firma Digital Táctil HTML5 Canvas para Órdenes y Reportes**:
+   - Captura de firma manuscrita en pantalla táctil (tablets de campo / smartphones) o con cursor de mouse.
+   - Inserción automática de la firma renderizada en el certificado técnico oficial imprimible en PDF.
+3. **Checklist Pre-operativo de 5 Minutos con Bloqueo Failsafe**:
+   - Módulo de verificación rápida para operadores antes de usar el elevador (trinquetes, cables, fugas, paro de emergencia, anclaje).
+   - Bloqueo preventivo automático: Si se detecta un fallo crítico, el equipo pasa inmediatamente a estado `fuera_servicio` y genera una orden de servicio correctivo urgente automática.
+4. **Exportación Industrial a CSV / Excel**:
+   - Exportación de inventario de refacciones, catálogo de elevadores y bitácora de órdenes con codificación UTF-8 BOM para apertura nativa en Microsoft Excel sin problemas de acentos o caracteres especiales.
+
 #### [v1.0.0-PROD] — 2026-09-15 (Versión Inicial Estable para Hostinger)
 *Lanzamiento oficial de la arquitectura integral basada en los requerimientos, formatos técnicos y esquemas organizacionales de TCS Motriz.*
 
