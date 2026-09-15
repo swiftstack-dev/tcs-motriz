@@ -48,6 +48,23 @@ $equipos = DataStore::getEquipos($filterSucursal, $filterTaller);
     </div>
 </div>
 
+<!-- BANNER CORPORATIVO TCS MOTRIZ CON LOGOTIPO -->
+<div style="background: linear-gradient(135deg, rgba(14, 165, 233, 0.12) 0%, rgba(15, 28, 53, 0.6) 100%); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: var(--radius-md); padding: 16px 22px; margin-bottom: 24px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 16px;">
+    <div style="display: flex; align-items: center; gap: 16px;">
+        <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 52px; object-fit: contain; filter: drop-shadow(0 2px 10px rgba(0,0,0,0.5));">
+        <div>
+            <div style="font-size: 16px; font-weight: 800; color: #fff; letter-spacing: 0.3px;">Centro de Mando Técnico & Telemetría TCS Motriz</div>
+            <div style="font-size: 12px; color: var(--text-secondary); margin-top: 2px;">Ingeniería certificada, inspección NOM/OSHA y mantenimiento para elevadores y equipos de taller</div>
+        </div>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+        <a href="landing.php" target="_blank" class="btn btn-sm btn-cyan">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+            <span>Landing Page Pública</span>
+        </a>
+    </div>
+</div>
+
 <!-- DIAGRAMA DE FLUJO JERÁRQUICO -->
 <div class="flow-diagram-banner">
     <div class="flow-title">
