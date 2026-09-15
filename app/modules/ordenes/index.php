@@ -95,11 +95,14 @@ $ordenes = DataStore::getOrdenes($filterSucursal, $filterTaller);
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <?php if ($isAdmin || $isTech): ?>
-                                    <?php if ($ord['estado'] !== 'concluido'): ?>
-                                        <div style="display: flex; gap: 6px;">
+                                <div style="display: flex; gap: 6px; align-items: center;">
+                                    <button class="btn btn-sm btn-cyan" onclick='verFichaOrden(<?= htmlspecialchars(json_encode($ord), ENT_QUOTES, "UTF-8") ?>)' title="Ver / Imprimir Ficha Oficial de Orden">
+                                        Ficha
+                                    </button>
+                                    <?php if ($isAdmin || $isTech): ?>
+                                        <?php if ($ord['estado'] !== 'concluido'): ?>
                                             <a href="index.php?view=reportes&accion=nuevo&orden_id=<?= $ord['id'] ?>" class="btn btn-sm btn-success" title="Atender y capturar reporte">
-                                                Atender / Reporte
+                                                Atender
                                             </a>
                                             <form method="POST" action="index.php?action=actualizar_orden_estado" style="display:inline;">
                                                 <?= csrf_field() ?>
@@ -107,15 +110,11 @@ $ordenes = DataStore::getOrdenes($filterSucursal, $filterTaller);
                                                 <input type="hidden" name="nuevo_estado" value="concluido">
                                                 <button type="submit" class="btn btn-sm btn-dark" title="Marcar como Concluido">✔</button>
                                             </form>
-                                        </div>
-                                    <?php else: ?>
-                                        <span style="font-size: 11px; color: var(--accent-emerald);">✔ Concluido</span>
+                                        <?php else: ?>
+                                            <span style="font-size: 11px; color: var(--accent-emerald);">✔ Concluido</span>
+                                        <?php endif; ?>
                                     <?php endif; ?>
-                                <?php else: ?>
-                                    <button class="btn btn-sm btn-dark" onclick="alert('Descripción: <?= addslashes($ord['descripcion_falla']) ?>')">
-                                        Detalle
-                                    </button>
-                                <?php endif; ?>
+                                </div>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -124,3 +123,103 @@ $ordenes = DataStore::getOrdenes($filterSucursal, $filterTaller);
         </table>
     </div>
 </div>
+
+<!-- MODAL IMPRESIÓN DE FICHA DE ORDEN DE TRABAJO CON LOGO -->
+<div id="modal-ver-orden" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width: 650px;">
+        <div class="modal-header">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">Ficha Oficial de Orden de Servicio</div>
+            </div>
+            <button class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="orden-print-sheet" style="background: #ffffff; color: #0f172a; padding: 24px; border-radius: 6px; font-family: Arial, sans-serif; position: relative; overflow: hidden; border: 1px solid #cbd5e1;">
+                <!-- Watermark -->
+                <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); opacity: 0.04; pointer-events: none;">
+                    <img src="assets/img/logo-tcs.png" alt="Watermark" style="width: 320px; filter: grayscale(100%);">
+                </div>
+
+                <!-- Header -->
+                <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #b91c1c; padding-bottom: 12px; margin-bottom: 16px; position: relative; z-index: 1;">
+                    <div style="display: flex; align-items: center; gap: 12px;">
+                        <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 46px; object-fit: contain;">
+                        <div>
+                            <div style="font-weight: 900; font-size: 14px; color: #b91c1c;">TCS MOTRIZ — INGENIERÍA Y MANTENIMIENTO</div>
+                            <div style="font-size: 10px; color: #475569;">Orden Oficial de Trabajo en Bahía • Red Nacional</div>
+                        </div>
+                    </div>
+                    <div style="text-align: right;">
+                        <div id="ord-view-folio" style="font-family: monospace; font-weight: 900; font-size: 15px; color: #0f172a;"></div>
+                        <div id="ord-view-fecha" style="font-size: 11px; color: #64748b;"></div>
+                    </div>
+                </div>
+
+                <!-- Detalle -->
+                <table style="width: 100%; border-collapse: collapse; font-size: 12px; margin-bottom: 14px; position: relative; z-index: 1;">
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #cbd5e1; width: 25%; font-weight: bold; background: #f8fafc;">Ubicación:</td>
+                        <td id="ord-view-ubicacion" style="padding: 6px; border: 1px solid #cbd5e1; width: 25%;"></td>
+                        <td style="padding: 6px; border: 1px solid #cbd5e1; width: 25%; font-weight: bold; background: #f8fafc;">Equipo / Rampa:</td>
+                        <td id="ord-view-equipo" style="padding: 6px; border: 1px solid #cbd5e1; width: 25%;"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Tipo de Servicio:</td>
+                        <td id="ord-view-tipo" style="padding: 6px; border: 1px solid #cbd5e1;"></td>
+                        <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Prioridad:</td>
+                        <td id="ord-view-prioridad" style="padding: 6px; border: 1px solid #cbd5e1;"></td>
+                    </tr>
+                    <tr>
+                        <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Solicitado por:</td>
+                        <td id="ord-view-solicitante" style="padding: 6px; border: 1px solid #cbd5e1;"></td>
+                        <td style="padding: 6px; border: 1px solid #cbd5e1; font-weight: bold; background: #f8fafc;">Técnico Asignado:</td>
+                        <td id="ord-view-tecnico" style="padding: 6px; border: 1px solid #cbd5e1;"></td>
+                    </tr>
+                </table>
+
+                <div style="font-size: 11px; font-weight: bold; color: #1e293b; margin-bottom: 4px; position: relative; z-index: 1;">Descripción de la Falla o Trabajo Requerido:</div>
+                <div id="ord-view-falla" style="border: 1px solid #cbd5e1; background: #f8fafc; padding: 10px; font-size: 12px; min-height: 48px; margin-bottom: 16px; position: relative; z-index: 1;"></div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 24px; text-align: center; font-size: 11px; position: relative; z-index: 1;">
+                    <div style="border-top: 1px solid #94a3b8; padding-top: 6px;">
+                        <strong id="ord-view-firma-solicita"></strong><br>
+                        <span style="color: #64748b;">Firma Solicitante / Cliente</span>
+                    </div>
+                    <div style="border-top: 1px solid #94a3b8; padding-top: 6px;">
+                        <strong id="ord-view-firma-tec"></strong><br>
+                        <span style="color: #64748b;">Técnico Especialista TCS Motriz</span>
+                    </div>
+                </div>
+
+                <div style="margin-top: 18px; border-top: 1px solid #e2e8f0; padding-top: 6px; font-size: 9px; color: #94a3b8; text-align: center;">
+                    Documento de Control y Asignación Operativa — TCS Motriz © 2026 • servicio-tcsmotriz.com.mx
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary btn-print-report">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
+                Imprimir Orden Oficial
+            </button>
+            <button class="btn btn-dark" data-close-modal>Cerrar</button>
+        </div>
+    </div>
+</div>
+
+<script>
+function verFichaOrden(ord) {
+    document.getElementById('ord-view-folio').innerText = ord.folio || ord.folio_orden || 'ORD-TCS';
+    document.getElementById('ord-view-fecha').innerText = 'Fecha: ' + (ord.fecha_solicitud || '').substring(0, 10);
+    document.getElementById('ord-view-ubicacion').innerText = ord.ubicacion || 'Bahía de Taller';
+    document.getElementById('ord-view-equipo').innerText = (ord.equipo_nombre || '') + (ord.equipo_codigo ? ' (' + ord.equipo_codigo + ')' : '');
+    document.getElementById('ord-view-tipo').innerText = (ord.tipo_servicio || 'Servicio').toUpperCase();
+    document.getElementById('ord-view-prioridad').innerText = (ord.prioridad || 'Normal').toUpperCase();
+    document.getElementById('ord-view-solicitante').innerText = ord.solicitante_nombre || 'Cliente';
+    document.getElementById('ord-view-tecnico').innerText = ord.tecnico_nombre || 'Especialista Asignado';
+    document.getElementById('ord-view-falla').innerText = ord.descripcion_falla || 'Sin observaciones adicionales reportadas.';
+    document.getElementById('ord-view-firma-solicita').innerText = ord.solicitante_nombre || 'Firma de Conformidad';
+    document.getElementById('ord-view-firma-tec').innerText = ord.tecnico_nombre || 'Téc. Héctor Morales';
+    openModal('modal-ver-orden');
+}
+</script>
