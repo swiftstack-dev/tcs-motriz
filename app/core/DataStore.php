@@ -687,6 +687,240 @@ class DataStore {
         return $id;
     }
 
+    // ==========================================
+    // AUTOGESTIÓN DE CLIENTES: MATRICES
+    // ==========================================
+    public static function getMatrizById(int $id): ?array {
+        $matrices = self::getMatrices();
+        foreach ($matrices as $m) {
+            if ($m['id'] == $id) return $m;
+        }
+        return null;
+    }
+
+    public static function updateMatriz(int $id, array $data): bool {
+        $store = self::loadData();
+        foreach ($store['matrices'] as &$m) {
+            if ($m['id'] == $id) {
+                $m['razon_social'] = $data['razon_social'] ?? $m['razon_social'];
+                $m['rfc']          = $data['rfc'] ?? $m['rfc'];
+                $m['direccion']    = $data['direccion'] ?? $m['direccion'];
+                $m['telefono']     = $data['telefono'] ?? $m['telefono'];
+                $m['email']        = $data['email'] ?? $m['email'];
+                $m['updated_at']   = date('Y-m-d H:i:s');
+                self::saveData($store);
+                Logger::log('UPDATE_MATRIZ', 'matrices', (string)$id, ['razon_social' => $m['razon_social']]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function deleteMatriz(int $id): bool {
+        $store = self::loadData();
+        $initial = count($store['matrices']);
+        $store['matrices'] = array_values(array_filter($store['matrices'], fn($m) => $m['id'] != $id));
+        if (count($store['matrices']) < $initial) {
+            self::saveData($store);
+            Logger::log('DELETE_MATRIZ', 'matrices', (string)$id);
+            return true;
+        }
+        return false;
+    }
+
+    // ==========================================
+    // AUTOGESTIÓN DE SUCURSALES
+    // ==========================================
+    public static function getSucursalById(int $id): ?array {
+        $sucursales = self::getSucursales();
+        foreach ($sucursales as $s) {
+            if ($s['id'] == $id) return $s;
+        }
+        return null;
+    }
+
+    public static function updateSucursal(int $id, array $data): bool {
+        $store = self::loadData();
+        foreach ($store['sucursales'] as &$s) {
+            if ($s['id'] == $id) {
+                $s['nombre']           = $data['nombre'] ?? $s['nombre'];
+                $s['direccion']        = $data['direccion'] ?? $s['direccion'];
+                $s['telefono']         = $data['telefono'] ?? $s['telefono'];
+                $s['gerente_servicio'] = $data['gerente_servicio'] ?? $s['gerente_servicio'];
+                $s['jefe_taller']      = $data['jefe_taller'] ?? $s['jefe_taller'];
+                if (isset($data['id_matriz'])) {
+                    $s['id_matriz']    = (int)$data['id_matriz'];
+                }
+                $s['updated_at']       = date('Y-m-d H:i:s');
+                self::saveData($store);
+                Logger::log('UPDATE_SUCURSAL', 'sucursales', (string)$id, ['nombre' => $s['nombre']]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function deleteSucursal(int $id): bool {
+        $store = self::loadData();
+        $initial = count($store['sucursales']);
+        $store['sucursales'] = array_values(array_filter($store['sucursales'], fn($s) => $s['id'] != $id));
+        if (count($store['sucursales']) < $initial) {
+            self::saveData($store);
+            Logger::log('DELETE_SUCURSAL', 'sucursales', (string)$id);
+            return true;
+        }
+        return false;
+    }
+
+    // ==========================================
+    // AUTOGESTIÓN DE TALLERES INDEPENDIENTES
+    // ==========================================
+    public static function getTallerById(int $id): ?array {
+        $talleres = self::getTalleres();
+        foreach ($talleres as $t) {
+            if ($t['id'] == $id) return $t;
+        }
+        return null;
+    }
+
+    public static function updateTaller(int $id, array $data): bool {
+        $store = self::loadData();
+        foreach ($store['talleres'] as &$t) {
+            if ($t['id'] == $id) {
+                $t['razon_social']     = $data['razon_social'] ?? $t['razon_social'];
+                $t['rfc']              = $data['rfc'] ?? $t['rfc'];
+                $t['direccion']        = $data['direccion'] ?? $t['direccion'];
+                $t['telefono']         = $data['telefono'] ?? $t['telefono'];
+                $t['email']            = $data['email'] ?? $t['email'];
+                $t['gerente_servicio'] = $data['gerente_servicio'] ?? $t['gerente_servicio'];
+                $t['jefe_taller']      = $data['jefe_taller'] ?? $t['jefe_taller'];
+                $t['updated_at']       = date('Y-m-d H:i:s');
+                self::saveData($store);
+                Logger::log('UPDATE_TALLER', 'talleres', (string)$id, ['razon_social' => $t['razon_social']]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function deleteTaller(int $id): bool {
+        $store = self::loadData();
+        $initial = count($store['talleres']);
+        $store['talleres'] = array_values(array_filter($store['talleres'], fn($t) => $t['id'] != $id));
+        if (count($store['talleres']) < $initial) {
+            self::saveData($store);
+            Logger::log('DELETE_TALLER', 'talleres', (string)$id);
+            return true;
+        }
+        return false;
+    }
+
+    // ==========================================
+    // AUTOGESTIÓN DE USUARIOS Y ACCESOS CLIENTES
+    // ==========================================
+    public static function getUsuarios(?string $filterRol = null): array {
+        $data = self::loadData();
+        $usuarios = $data['usuarios'] ?? [];
+        $matrices = array_column($data['matrices'] ?? [], null, 'id');
+        $sucursales = array_column($data['sucursales'] ?? [], null, 'id');
+        $talleres = array_column($data['talleres'] ?? [], null, 'id');
+
+        $result = [];
+        foreach ($usuarios as $u) {
+            if ($filterRol !== null && $u['rol'] !== $filterRol) {
+                continue;
+            }
+
+            $entidadNombre = 'Acceso General / TCS';
+            if (!empty($u['id_sucursal']) && isset($sucursales[$u['id_sucursal']])) {
+                $suc = $sucursales[$u['id_sucursal']];
+                $matrizNombre = $matrices[$suc['id_matriz']]['razon_social'] ?? 'Matriz';
+                $entidadNombre = $suc['nombre'] . ' (' . $matrizNombre . ')';
+            } elseif (!empty($u['id_matriz']) && isset($matrices[$u['id_matriz']])) {
+                $entidadNombre = $matrices[$u['id_matriz']]['razon_social'] . ' (Corporativo)';
+            } elseif (!empty($u['id_taller']) && isset($talleres[$u['id_taller']])) {
+                $entidadNombre = $talleres[$u['id_taller']]['razon_social'] . ' (Taller)';
+            }
+
+            $u['entidad_nombre'] = $entidadNombre;
+            $result[] = $u;
+        }
+        return $result;
+    }
+
+    public static function getUsuarioById(int $id): ?array {
+        $usuarios = self::getUsuarios();
+        foreach ($usuarios as $u) {
+            if ($u['id'] == $id) return $u;
+        }
+        return null;
+    }
+
+    public static function getUsuarioByEmail(string $email): ?array {
+        $data = self::loadData();
+        $email = strtolower(trim($email));
+        foreach ($data['usuarios'] ?? [] as $u) {
+            if (strtolower(trim($u['email'])) === $email) {
+                return $u;
+            }
+        }
+        return null;
+    }
+
+    public static function createUsuario(array $newUser): int {
+        $data = self::loadData();
+        $id = count($data['usuarios']) ? max(array_column($data['usuarios'], 'id')) + 1 : 1;
+        $newUser['id'] = $id;
+        $newUser['created_at'] = date('Y-m-d H:i:s');
+        $newUser['is_online'] = 0;
+        $newUser['estado'] = $newUser['estado'] ?? 'activo';
+        if (!empty($newUser['password'])) {
+            $newUser['password_hash'] = password_hash($newUser['password'], PASSWORD_BCRYPT, ['cost' => 12]);
+            unset($newUser['password']);
+        }
+        $data['usuarios'][] = $newUser;
+        self::saveData($data);
+        Logger::log('CREATE_USUARIO', 'usuarios', (string)$id, ['email' => $newUser['email'], 'rol' => $newUser['rol']]);
+        return $id;
+    }
+
+    public static function updateUsuario(int $id, array $data): bool {
+        $store = self::loadData();
+        foreach ($store['usuarios'] as &$u) {
+            if ($u['id'] == $id) {
+                $u['nombre']      = $data['nombre'] ?? $u['nombre'];
+                $u['alias']       = $data['alias'] ?? $u['alias'];
+                $u['email']       = $data['email'] ?? $u['email'];
+                $u['telefono']    = $data['telefono'] ?? $u['telefono'];
+                $u['rfc']         = $data['rfc'] ?? $u['rfc'];
+                if (isset($data['rol'])) $u['rol'] = $data['rol'];
+                if (array_key_exists('id_matriz', $data)) $u['id_matriz'] = $data['id_matriz'];
+                if (array_key_exists('id_sucursal', $data)) $u['id_sucursal'] = $data['id_sucursal'];
+                if (array_key_exists('id_taller', $data)) $u['id_taller'] = $data['id_taller'];
+                if (!empty($data['password'])) {
+                    $u['password_hash'] = password_hash($data['password'], PASSWORD_BCRYPT, ['cost' => 12]);
+                }
+                $u['updated_at']  = date('Y-m-d H:i:s');
+                self::saveData($store);
+                Logger::log('UPDATE_USUARIO', 'usuarios', (string)$id, ['email' => $u['email']]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function deleteUsuario(int $id): bool {
+        $store = self::loadData();
+        $initial = count($store['usuarios']);
+        $store['usuarios'] = array_values(array_filter($store['usuarios'], fn($u) => $u['id'] != $id));
+        if (count($store['usuarios']) < $initial) {
+            self::saveData($store);
+            Logger::log('DELETE_USUARIO', 'usuarios', (string)$id);
+            return true;
+        }
+        return false;
+    }
+
     public static function getEquipos(?int $filterSucursal = null, ?int $filterTaller = null): array {
         $data = self::loadData();
         $equipos = $data['equipos'] ?? [];
@@ -955,26 +1189,6 @@ class DataStore {
         return $id;
     }
 
-    public static function getUsuarios(): array {
-        $data = self::loadData();
-        return $data['usuarios'] ?? [];
-    }
-
-    public static function getUsuarioById(int $id): ?array {
-        $usuarios = self::getUsuarios();
-        foreach ($usuarios as $u) {
-            if ($u['id'] == $id) return $u;
-        }
-        return null;
-    }
-
-    public static function getUsuarioByEmail(string $email): ?array {
-        $usuarios = self::getUsuarios();
-        foreach ($usuarios as $u) {
-            if (strcasecmp($u['email'], $email) === 0) return $u;
-        }
-        return null;
-    }
 
     public static function getChecklists(?int $equipoId = null): array {
         $data = self::loadData();
