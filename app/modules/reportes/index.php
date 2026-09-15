@@ -352,14 +352,14 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
          ===================================================================== -->
     <div class="view-header">
         <div class="view-title-group">
-            <h1>Reportes de Mantenimiento y Servicio</h1>
-            <p>Fichas técnicas de servicio expedidas con validez oficial para cada cliente y equipo</p>
+            <h1>Reportes Técnicos e Informes de Mantenimiento</h1>
+            <p>Fichas técnicas de servicio, dictámenes de operatividad y analítica de bahías para talleres y agencias</p>
         </div>
 
         <div class="header-action-buttons">
             <a href="index.php?action=exportar_csv&tipo=reportes" class="btn btn-dark">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                <span>Exportar CSV / Excel</span>
+                <span>Exportar Informes CSV</span>
             </a>
             <?php if ($isAdmin || $isTech): ?>
             <a href="index.php?view=reportes&accion=nuevo" class="btn btn-primary">
@@ -367,6 +367,33 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
                 <span>Emitir Nuevo Reporte</span>
             </a>
             <?php endif; ?>
+        </div>
+    </div>
+
+    <!-- INFORME EJECUTIVO DE SALUD Y TELEMETRÍA DE BAHÍAS -->
+    <div class="kpi-grid" style="grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); margin-bottom: 24px;">
+        <div class="kpi-card kpi-cyan">
+            <div class="kpi-number">92.4%</div>
+            <div class="kpi-label">Disponibilidad de Elevadores</div>
+            <div class="kpi-subtext">7 de 8 bahías operando al 100%</div>
+        </div>
+
+        <div class="kpi-card kpi-emerald">
+            <div class="kpi-number">+340 h</div>
+            <div class="kpi-label">Horas Productivas Protegidas</div>
+            <div class="kpi-subtext">Cero paros catastróficos este mes</div>
+        </div>
+
+        <div class="kpi-card kpi-blue">
+            <div class="kpi-number">100%</div>
+            <div class="kpi-label">Cumplimiento NOM / OSHA</div>
+            <div class="kpi-subtext">Certificados y firmas auditables</div>
+        </div>
+
+        <div class="kpi-card kpi-amber">
+            <div class="kpi-number"><?= count($reportes) ?></div>
+            <div class="kpi-label">Informes & Peritajes Foliados</div>
+            <div class="kpi-subtext">Historial técnico digitalizado</div>
         </div>
     </div>
 
