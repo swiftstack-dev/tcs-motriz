@@ -154,6 +154,29 @@ if ($action === 'exportar_csv') {
                 $isConcluido ? 'CONCILIADO - LISTO PARA FACTURAR' : 'EN EJECUCIÓN'
             ]);
         }
+    } elseif ($tipo === 'clientes') {
+        fputcsv($out, ['Tipo Entidad', 'Razón Social / Nombre', 'RFC', 'Dirección / Ubicación', 'Teléfono', 'Email', 'Gerente de Servicio', 'Jefe de Taller', 'Sucursales / Bahías', 'Equipos']);
+        $mats = DataStore::getMatrices();
+        $sucs = DataStore::getSucursales();
+        $tals = DataStore::getTalleres();
+        $eqs = DataStore::getEquipos();
+
+        foreach ($mats as $m) {
+            $misSucs = array_filter($sucs, fn($s) => ($s['id_matriz'] ?? 0) == $m['id']);
+            $nombresSucs = implode(' | ', array_column($misSucs, 'nombre'));
+            $eqCount = count(array_filter($eqs, fn($e) => in_array($e['id_sucursal'] ?? 0, array_column($misSucs, 'id'))));
+            fputcsv($out, ['Empresa Matriz', $m['razon_social'], $m['rfc'], $m['direccion'], $m['telefono'], $m['email'], 'N/A', 'N/A', count($misSucs) . " sucursales: $nombresSucs", $eqCount]);
+        }
+
+        foreach ($sucs as $s) {
+            $eqCount = count(array_filter($eqs, fn($e) => ($e['id_sucursal'] ?? 0) == $s['id']));
+            fputcsv($out, ['Sucursal', $s['nombre'], 'N/A', $s['direccion'], $s['telefono'], 'N/A', $s['gerente_servicio'] ?? 'N/A', $s['jefe_taller'] ?? 'N/A', 'Bahía Local', $eqCount]);
+        }
+
+        foreach ($tals as $t) {
+            $eqCount = count(array_filter($eqs, fn($e) => ($e['id_taller'] ?? 0) == $t['id']));
+            fputcsv($out, ['Taller Independiente', $t['razon_social'], $t['rfc'], $t['direccion'], $t['telefono'], $t['email'], $t['gerente_servicio'] ?? 'N/A', $t['jefe_taller'] ?? 'N/A', 'Local Único', $eqCount]);
+        }
     }
     fclose($out);
     exit;
@@ -191,10 +214,31 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         'jefe_taller'      => Security::sanitizeString($_POST['sucursal_jefe'] ?? null)
                     ]);
                 }
-                header('Location: index.php?view=sucursales&msg=matriz_creada');
+                header('Location: index.php?view=clientes&msg=matriz_creada');
+                exit;
+
+            case 'editar_matriz':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                DataStore::updateMatriz($id, [
+                    'razon_social' => Security::sanitizeString($_POST['razon_social']),
+                    'rfc'          => Security::sanitizeString($_POST['rfc']),
+                    'direccion'    => Security::sanitizeString($_POST['direccion']),
+                    'telefono'     => Security::sanitizeString($_POST['telefono']),
+                    'email'        => Security::sanitizeEmail($_POST['email'])
+                ]);
+                header('Location: index.php?view=clientes&msg=matriz_actualizada');
+                exit;
+
+            case 'eliminar_matriz':
+                if (!Auth::isAdmin()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                DataStore::deleteMatriz($id);
+                header('Location: index.php?view=clientes&msg=matriz_eliminada');
                 exit;
 
             case 'vincular_sucursal':
+            case 'crear_sucursal':
                 if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
                 DataStore::linkSucursal([
                     'id_matriz'        => Security::sanitizeInt($_POST['id_matriz']),
@@ -204,7 +248,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'gerente_servicio' => Security::sanitizeString($_POST['gerente_servicio'] ?? null),
                     'jefe_taller'      => Security::sanitizeString($_POST['jefe_taller'] ?? null)
                 ]);
-                header('Location: index.php?view=sucursales&msg=sucursal_vinculada');
+                header('Location: index.php?view=clientes&tab=sucursales&msg=sucursal_creada');
+                exit;
+
+            case 'editar_sucursal':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                DataStore::updateSucursal($id, [
+                    'id_matriz'        => Security::sanitizeInt($_POST['id_matriz']),
+                    'nombre'           => Security::sanitizeString($_POST['nombre']),
+                    'direccion'        => Security::sanitizeString($_POST['direccion']),
+                    'telefono'         => Security::sanitizeString($_POST['telefono']),
+                    'gerente_servicio' => Security::sanitizeString($_POST['gerente_servicio'] ?? null),
+                    'jefe_taller'      => Security::sanitizeString($_POST['jefe_taller'] ?? null)
+                ]);
+                header('Location: index.php?view=clientes&tab=sucursales&msg=sucursal_actualizada');
+                exit;
+
+            case 'eliminar_sucursal':
+                if (!Auth::isAdmin()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                DataStore::deleteSucursal($id);
+                header('Location: index.php?view=clientes&tab=sucursales&msg=sucursal_eliminada');
                 exit;
 
             case 'crear_taller':
@@ -218,7 +283,98 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'gerente_servicio' => Security::sanitizeString($_POST['gerente_servicio'] ?? null),
                     'jefe_taller'      => Security::sanitizeString($_POST['jefe_taller'] ?? null)
                 ]);
-                header('Location: index.php?view=sucursales&msg=taller_creado');
+                header('Location: index.php?view=clientes&tab=talleres&msg=taller_creado');
+                exit;
+
+            case 'editar_taller':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                DataStore::updateTaller($id, [
+                    'razon_social'     => Security::sanitizeString($_POST['razon_social']),
+                    'rfc'              => Security::sanitizeString($_POST['rfc']),
+                    'direccion'        => Security::sanitizeString($_POST['direccion']),
+                    'telefono'         => Security::sanitizeString($_POST['telefono']),
+                    'email'            => Security::sanitizeEmail($_POST['email']),
+                    'gerente_servicio' => Security::sanitizeString($_POST['gerente_servicio'] ?? null),
+                    'jefe_taller'      => Security::sanitizeString($_POST['jefe_taller'] ?? null)
+                ]);
+                header('Location: index.php?view=clientes&tab=talleres&msg=taller_actualizado');
+                exit;
+
+            case 'eliminar_taller':
+                if (!Auth::isAdmin()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                DataStore::deleteTaller($id);
+                header('Location: index.php?view=clientes&tab=talleres&msg=taller_eliminado');
+                exit;
+
+            case 'crear_usuario_cliente':
+                if (!Auth::isAdmin()) die('No autorizado');
+                $destino = Security::sanitizeString($_POST['destino_tipo'] ?? 'sucursal');
+                $idMatriz = null;
+                $idSucursal = null;
+                $idTaller = null;
+                if ($destino === 'sucursal') {
+                    $idSucursal = Security::sanitizeInt($_POST['id_sucursal']);
+                    $suc = DataStore::getSucursalById($idSucursal);
+                    $idMatriz = $suc['id_matriz'] ?? null;
+                } else {
+                    $idTaller = Security::sanitizeInt($_POST['id_taller']);
+                }
+
+                DataStore::createUsuario([
+                    'nombre'     => Security::sanitizeString($_POST['nombre']),
+                    'alias'      => Security::sanitizeString($_POST['alias'] ?? $_POST['nombre']),
+                    'email'      => Security::sanitizeEmail($_POST['email']),
+                    'telefono'   => Security::sanitizeString($_POST['telefono'] ?? ''),
+                    'rfc'        => Security::sanitizeString($_POST['rfc'] ?? ''),
+                    'rol'        => 'cliente',
+                    'id_matriz'  => $idMatriz,
+                    'id_sucursal'=> $idSucursal,
+                    'id_taller'  => $idTaller,
+                    'password'   => !empty($_POST['password']) ? $_POST['password'] : 'tcs2026',
+                    'foto_url'   => 'assets/img/avatar-cliente1.png'
+                ]);
+                header('Location: index.php?view=clientes&tab=usuarios&msg=usuario_creado');
+                exit;
+
+            case 'editar_usuario_cliente':
+                if (!Auth::isAdmin()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                $destino = Security::sanitizeString($_POST['destino_tipo'] ?? 'sucursal');
+                $idMatriz = null;
+                $idSucursal = null;
+                $idTaller = null;
+                if ($destino === 'sucursal') {
+                    $idSucursal = Security::sanitizeInt($_POST['id_sucursal']);
+                    $suc = DataStore::getSucursalById($idSucursal);
+                    $idMatriz = $suc['id_matriz'] ?? null;
+                } else {
+                    $idTaller = Security::sanitizeInt($_POST['id_taller']);
+                }
+
+                $updateData = [
+                    'nombre'     => Security::sanitizeString($_POST['nombre']),
+                    'alias'      => Security::sanitizeString($_POST['alias'] ?? $_POST['nombre']),
+                    'email'      => Security::sanitizeEmail($_POST['email']),
+                    'telefono'   => Security::sanitizeString($_POST['telefono'] ?? ''),
+                    'rfc'        => Security::sanitizeString($_POST['rfc'] ?? ''),
+                    'id_matriz'  => $idMatriz,
+                    'id_sucursal'=> $idSucursal,
+                    'id_taller'  => $idTaller
+                ];
+                if (!empty($_POST['password'])) {
+                    $updateData['password'] = $_POST['password'];
+                }
+                DataStore::updateUsuario($id, $updateData);
+                header('Location: index.php?view=clientes&tab=usuarios&msg=usuario_actualizado');
+                exit;
+
+            case 'eliminar_usuario_cliente':
+                if (!Auth::isAdmin()) die('No autorizado');
+                $id = Security::sanitizeInt($_POST['id']);
+                DataStore::deleteUsuario($id);
+                header('Location: index.php?view=clientes&tab=usuarios&msg=usuario_eliminado');
                 exit;
 
             case 'crear_equipo':
@@ -412,6 +568,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 $allowedViews = [
     'dashboard',
     'alertas',
+    'clientes',
     'sucursales',
     'equipos',
     'ordenes',
@@ -476,10 +633,10 @@ $critCount = count(array_filter($globalAlertas, fn($a) => $a['severidad'] === 'c
                 <?php endif; ?>
             </a>
 
-            <a href="index.php?view=sucursales" class="nav-item <?= ($view === 'sucursales' ? 'active' : '') ?>">
+            <a href="index.php?view=clientes" class="nav-item <?= ($view === 'clientes' || $view === 'sucursales' ? 'active' : '') ?>">
                 <div class="nav-label-group">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21h18M3 7v14M21 7v14M6 11h2M6 15h2M10 11h2M10 15h2M14 11h2M14 15h2M18 11h2M18 15h2M9 3h6v4H9z"/></svg>
-                    <span>Sucursales y Talleres</span>
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    <span>Clientes y Sucursales</span>
                 </div>
                 <span class="nav-badge"><?= count($matrices) + count($talleres) ?></span>
             </a>
