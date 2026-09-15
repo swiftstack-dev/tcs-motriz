@@ -455,6 +455,13 @@ $equipos = DataStore::getEquipos();
     <main class="main-viewport">
         <!-- BARRA SUPERIOR -->
         <header class="top-navbar">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <a href="landing.php" target="_blank" style="display: inline-flex; align-items: center; gap: 8px; text-decoration: none; padding: 5px 12px; background: rgba(14, 165, 233, 0.08); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: 6px; transition: all var(--transition-fast);" title="Abrir Landing Page Oficial de TCS Motriz">
+                    <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 22px; object-fit: contain;">
+                    <span style="font-size: 11px; font-weight: 700; color: #38bdf8; letter-spacing: 0.5px;">SITIO PÚBLICO ↗</span>
+                </a>
+            </div>
+
             <div class="role-simulator-bar">
                 <span class="role-sim-title">Simular Rol:</span>
                 <button class="btn-sim-role <?= (Auth::isAdmin() ? 'active' : '') ?>" data-role="admin">
@@ -505,7 +512,10 @@ $equipos = DataStore::getEquipos();
 <div id="modal-crear-matriz" class="modal-backdrop">
     <div class="modal-dialog">
         <div class="modal-header">
-            <div class="modal-title">Registrar Empresa Matriz y Primera Sucursal</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">Registrar Empresa Matriz y Primera Sucursal</div>
+            </div>
             <button class="modal-close" data-close-modal>&times;</button>
         </div>
         <form method="POST" action="index.php?action=crear_matriz">
@@ -575,7 +585,10 @@ $equipos = DataStore::getEquipos();
 <div id="modal-vincular-sucursal" class="modal-backdrop">
     <div class="modal-dialog">
         <div class="modal-header">
-            <div class="modal-title">Vincular Nueva Sucursal a Matriz Existente</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">Vincular Nueva Sucursal a Matriz Existente</div>
+            </div>
             <button class="modal-close" data-close-modal>&times;</button>
         </div>
         <form method="POST" action="index.php?action=vincular_sucursal">
@@ -629,7 +642,10 @@ $equipos = DataStore::getEquipos();
 <div id="modal-crear-taller" class="modal-backdrop">
     <div class="modal-dialog">
         <div class="modal-header">
-            <div class="modal-title">Registrar Taller Independiente (Local Único)</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">Registrar Taller Independiente (Local Único)</div>
+            </div>
             <button class="modal-close" data-close-modal>&times;</button>
         </div>
         <form method="POST" action="index.php?action=crear_taller">
@@ -685,7 +701,10 @@ $equipos = DataStore::getEquipos();
 <div id="modal-crear-equipo" class="modal-backdrop">
     <div class="modal-dialog modal-dialog-large">
         <div class="modal-header">
-            <div class="modal-title">Registrar Equipo o Rampa Elevadora</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">Registrar Equipo o Rampa Elevadora</div>
+            </div>
             <button class="modal-close" data-close-modal>&times;</button>
         </div>
         <form method="POST" action="index.php?action=crear_equipo">
@@ -788,7 +807,10 @@ $equipos = DataStore::getEquipos();
 <div id="modal-solicitar-servicio" class="modal-backdrop">
     <div class="modal-dialog">
         <div class="modal-header">
-            <div class="modal-title">Nueva Solicitud de Servicio a Equipo</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">Nueva Solicitud de Servicio a Equipo</div>
+            </div>
             <button class="modal-close" data-close-modal>&times;</button>
         </div>
         <form method="POST" action="index.php?action=solicitar_servicio">
