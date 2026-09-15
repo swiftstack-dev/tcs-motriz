@@ -5,6 +5,40 @@
 
 ### Control de Versiones
 
+#### [v1.4.0-PROD] — 2026-09-15 (6 Mejoras de Alto Impacto: Firmas, Evidencias, Failsafe, Predictivo, WhatsApp y Facturación)
+*Implementación integral de las 6 mejoras operativas e industriales solicitadas para elevar la plataforma a nivel de madurez operativa y comercial superior.*
+
+##### 🚀 6 Mejoras de Alto Impacto Implementadas
+1. ✍️ **Firma Digital Táctil en Campo (Smartphones y Tablets)**:
+   - Lienzo interactivo HTML5 Canvas táctil de alta precisión para técnicos y clientes en campo.
+   - Captura de doble rúbrica manuscrita: Técnico Especialista Certificado TCS y Cliente / Jefe de Bahía.
+   - Almacenamiento perimetral en Base64 e inserción directa en el dictamen técnico oficial imprimible en PDF con validez legal.
+2. 📸 **Registro de Evidencia Fotográfica (Antes y Después)**:
+   - Módulo de carga de fotografías periciales en el reporte técnico oficial con vista previa en tiempo real.
+   - **Evidencia Inicial**: Registro fotográfico del daño o condición previa (cables deshilachados, sellos hidráulicos dañados).
+   - **Evidencia Final**: Registro fotográfico del componente nuevo instalado, torqueado y calibrado.
+   - Renderizado comparativo lado a lado en el certificado oficial para transparencia total ante aseguradoras y directores de agencia.
+3. 🚨 **Checklist Diario con "Bloqueo Preventivo Automático" (Failsafe)**:
+   - Checklist pre-operativo de 5 minutos disponible en la ficha de cada rampa para operadores de bahía.
+   - Si se detecta un fallo crítico (trinquetes de seguridad que no enclavan, fugas a presión, cables desbalanceados):
+     - El elevador se bloquea automáticamente pasando a estado `FUERA DE SERVICIO (BLOQUEADO)`.
+     - Se genera de inmediato una Orden de Servicio Correctiva de Emergencia (Prioridad Crítica) asignada al soporte de TCS Motriz.
+     - Se dispara una alerta de severidad crítica en el centro de monitoreo.
+4. ⏳ **Mantenimiento Predictivo y Desgaste por Horas / Ciclos**:
+   - Algoritmo de fatiga mecánica y vida útil predictiva basado en horas efectivas de ciclo:
+     - Cables de ecualización de acero trenzado: vida límite nominal de 1,500 hrs o 3 años.
+     - Fluido hidráulico ISO 32 / VG 46: vida límite nominal de 1,000 hrs o anual.
+     - Almohadillas de goma de brazos de apoyo: vida límite nominal de 800 hrs.
+   - Matriz visual de barras de progreso con porcentaje consumido, horas restantes y semáforo tricolor en el expediente técnico de la rampa.
+   - Emisión anticipada de alertas automáticas al superar el 80% y 90% de ciclo para prevenir paros en bahía.
+5. 📲 **Botón Directo a WhatsApp para Técnicos y Clientes**:
+   - Botón directo de notificación rápida vía WhatsApp (`api.whatsapp.com`) en cada orden de servicio, en la tabla de bitácora y en la ficha modal.
+   - Mensaje dinámico pre-redactado: *"Hola [Cliente], el Técnico Héctor Morales de TCS Motriz va en camino para atender el [Equipo] ([Código]) (Orden [Folio]). Soporte: 55-8000-4277."*
+   - Botones de compartir dictamen pericial por WhatsApp en reportes técnicos y expedientes de elevadores.
+6. 📊 **Exportación a Excel / CSV para Facturación e Inventario**:
+   - **Módulo de Facturación Comercial**: Exportación a CSV con UTF-8 BOM para el departamento contable de TCS Motriz con desglose de cliente, horas de mano de obra técnica, tarifa horaria, refacciones utilizadas, subtotal, IVA 16% y total neto facturable.
+   - **Conciliación de Almacén**: Exportación rápida de inventario y consumibles para compras con proveedores y auditorías mensuales.
+
 #### [v1.2.0-PROD] — 2026-09-15 (Landing Page Oficial, Firmas Digitales y Failsafe)
 *Incorporación de la Landing Page pública de alto impacto, firmas táctiles en pantalla y bloqueo de seguridad failsafe.*
 
