@@ -60,6 +60,13 @@ function csrf_field() {
 }
 
 /**
+ * Obtener valor en cadena del token CSRF
+ */
+function csrf_token() {
+    return htmlspecialchars($_SESSION['csrf_token'] ?? '', ENT_QUOTES, 'UTF-8');
+}
+
+/**
  * Enviar cabeceras HTTP de seguridad adicionales
  */
 function send_security_headers() {
