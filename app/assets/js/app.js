@@ -22,6 +22,7 @@ function openModal(modalId) {
         document.body.style.overflow = 'hidden';
     }
 }
+window.openModal = openModal;
 
 function closeModal(modalId) {
     const modal = document.getElementById(modalId);
@@ -30,6 +31,17 @@ function closeModal(modalId) {
         document.body.style.overflow = 'auto';
     }
 }
+window.closeModal = closeModal;
+
+function showTab(tabId, btn) {
+    document.querySelectorAll('.tab-content-panel').forEach(p => p.style.display = 'none');
+    document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+    
+    const panel = document.getElementById(tabId);
+    if (panel) panel.style.display = 'block';
+    if (btn) btn.classList.add('active');
+}
+window.showTab = showTab;
 
 function initModals() {
     // Cerrar con botones data-close-modal
