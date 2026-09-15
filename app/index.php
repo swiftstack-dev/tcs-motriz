@@ -93,6 +93,21 @@ if ($action === 'exportar_csv') {
                 $e['horas_uso'] ?? 0
             ]);
         }
+    } elseif ($tipo === 'alertas') {
+        fputcsv($out, ['ID Alerta', 'Severidad', 'Equipo / Código', 'Ubicación', 'Título', 'Mensaje', 'Fecha Detección', 'Acción Sugerida']);
+        $alts = DataStore::getAlertas();
+        foreach ($alts as $a) {
+            fputcsv($out, [
+                $a['id'],
+                strtoupper($a['severidad']),
+                $a['codigo_equipo'] ?? 'N/A',
+                $a['ubicacion'] ?? 'N/A',
+                $a['titulo'],
+                $a['mensaje'],
+                $a['fecha_deteccion'],
+                $a['accion_sugerida']
+            ]);
+        }
     }
     fclose($out);
     exit;
@@ -319,6 +334,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 // Inclusión de módulos autorizados (Prevención LFI / Local File Inclusion)
 $allowedViews = [
     'dashboard',
+    'alertas',
     'sucursales',
     'equipos',
     'ordenes',
@@ -338,6 +354,8 @@ $matrices = DataStore::getMatrices();
 $sucursales = DataStore::getSucursales();
 $talleres = DataStore::getTalleres();
 $equipos = DataStore::getEquipos();
+$globalAlertas = DataStore::getAlertas(Auth::isClient() ? ($currentUser['id_sucursal'] ?? null) : null, Auth::isClient() ? ($currentUser['id_taller'] ?? null) : null);
+$critCount = count(array_filter($globalAlertas, fn($a) => $a['severidad'] === 'critica'));
 ?>
 <!DOCTYPE html>
 <html lang="es">
@@ -369,6 +387,16 @@ $equipos = DataStore::getEquipos();
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                     <span>Dashboard</span>
                 </div>
+            </a>
+
+            <a href="index.php?view=alertas" class="nav-item <?= ($view === 'alertas' ? 'active' : '') ?>">
+                <div class="nav-label-group">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <span>Alertas de Servicio</span>
+                </div>
+                <?php if (count($globalAlertas) > 0): ?>
+                    <span class="nav-badge" style="background: <?= $critCount > 0 ? '#e11d48' : '#f59e0b' ?>; color: #fff; font-weight: bold;"><?= count($globalAlertas) ?></span>
+                <?php endif; ?>
             </a>
 
             <a href="index.php?view=sucursales" class="nav-item <?= ($view === 'sucursales' ? 'active' : '') ?>">
@@ -478,7 +506,15 @@ $equipos = DataStore::getEquipos();
                 </button>
             </div>
 
-            <div class="user-profile-badge">
+            <div style="display: flex; align-items: center; gap: 12px;">
+                <a href="index.php?view=alertas" style="position: relative; display: flex; align-items: center; justify-content: center; width: 38px; height: 38px; background: rgba(225, 29, 72, 0.12); border: 1px solid rgba(225, 29, 72, 0.35); border-radius: 8px; color: #f43f5e; text-decoration: none;" title="Centro de Alertas Técnicas">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                    <?php if (count($globalAlertas) > 0): ?>
+                        <span style="position: absolute; top: -5px; right: -5px; background: #e11d48; color: #fff; font-size: 10px; font-weight: 900; border-radius: 10px; padding: 1px 6px; box-shadow: 0 0 8px rgba(225,29,72,0.9);"><?= count($globalAlertas) ?></span>
+                    <?php endif; ?>
+                </a>
+
+                <div class="user-profile-badge">
                 <div class="profile-avatar">
                     <?= strtoupper(substr($currentUser['nombre'], 0, 2)) ?>
                     <div class="profile-status-dot"></div>
