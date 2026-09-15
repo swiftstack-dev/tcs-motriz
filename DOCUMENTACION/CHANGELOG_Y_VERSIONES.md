@@ -5,6 +5,31 @@
 
 ### Control de Versiones
 
+#### [v1.5.0-PROD] — 2026-09-15 (Centro Autónomo de Gestión de Clientes, Sucursales, Talleres y Cuentas de Acceso)
+*Implementación del Centro Integral de Autogestión Empresarial para habilitar al Administrador de TCS Motriz a dar de alta, editar, auditar y gestionar el ciclo de vida completo de Empresas Matriz, Redes de Sucursales, Talleres Independientes y Credenciales de Acceso al Portal de Clientes sin necesidad de intervenir código ni base de datos manual.*
+
+##### 🏢 Módulo de Autogestión Empresarial 100% Autónomo (`app/modules/clientes/index.php`)
+1. **Directorio y Gestión Jerárquica de Empresas Matriz**:
+   - Registro y edición completa de empresas corporativas: Razón Social, RFC Fiscal validado, Dirección, Teléfono, Correo Oficial y sucursales adscritas.
+   - Vista en árbol interactivo que desglosa todas las sucursales dependientes, rampas asignadas por sede y botones de acceso directo.
+   - Botón directo para vincular nuevas sucursales a matrices existentes en 1 clic.
+2. **Administración de Red de Sucursales y Agencias**:
+   - Onboarding de sedes físicas con asignación de Gerente de Servicio y Jefe de Taller/Bahía.
+   - Conexión perimetral con los elevadores automotrices instalados en cada bahía de servicio.
+   - Edición y baja lógica de sedes con confirmación de seguridad.
+3. **Gestión de Talleres Independientes (Local Único)**:
+   - Registro de talleres mecánicos multimarca con datos fiscales, dirección de taller, contacto y parque de maquinaria.
+   - Edición completa de datos de contacto y administración de maquinaria adscrita.
+4. **Directorio Unificado de Sedes y Bahías**:
+   - Tabla global interactiva con buscador en vivo de sucursales y talleres.
+   - Desglose de número de elevadores en operación, teléfono directo, correo y administradores locales.
+   - Exportación a Excel/CSV con codificación UTF-8 BOM (`index.php?action=exportar_csv&tipo=clientes`).
+5. **Autogestión de Cuentas y Accesos de Cliente al Portal**:
+   - Alta autónoma de cuentas de usuario cliente (Rol `cliente`): Nombre, Correo Electrónico institucional, Contraseña cifrada con `bcrypt` (cost 12), Teléfono y RFC.
+   - Asignación estricta de perímetro de visibilidad: Sucursal corporativa o Taller independiente (prevención IDOR OWASP A01).
+   - Edición de credenciales, restablecimiento inmediato de contraseñas de acceso y opción para simular la vista del cliente con un solo clic.
+   - Eliminación segura de accesos con auditoría en bitácora ISO 27001.
+
 #### [v1.4.0-PROD] — 2026-09-15 (6 Mejoras de Alto Impacto: Firmas, Evidencias, Failsafe, Predictivo, WhatsApp y Facturación)
 *Implementación integral de las 6 mejoras operativas e industriales solicitadas para elevar la plataforma a nivel de madurez operativa y comercial superior.*
 
