@@ -156,6 +156,9 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
         <!-- FIRMAS DE CONFORMIDAD Y CERTIFICACIÓN -->
         <div class="signatures-box">
             <div>
+                <?php if (!empty($reporteSeleccionado['firma_digital_tecnico'])): ?>
+                    <img src="<?= $reporteSeleccionado['firma_digital_tecnico'] ?>" alt="Firma Técnico" style="max-height: 48px; display: block; margin: 0 auto 4px auto;" />
+                <?php endif; ?>
                 <div class="sig-line">
                     <div><?= Security::e($reporteSeleccionado['firma_tecnico_nombre'] ?? 'Téc. Héctor Morales') ?></div>
                     <div style="font-weight: normal; color: #64748b;">Técnico Especialista Certificado TCS</div>
@@ -163,6 +166,9 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
                 </div>
             </div>
             <div>
+                <?php if (!empty($reporteSeleccionado['firma_digital_cliente'])): ?>
+                    <img src="<?= $reporteSeleccionado['firma_digital_cliente'] ?>" alt="Firma Cliente" style="max-height: 48px; display: block; margin: 0 auto 4px auto;" />
+                <?php endif; ?>
                 <div class="sig-line">
                     <div><?= Security::e($reporteSeleccionado['firma_cliente_nombre'] ?? 'Firma de Conformidad') ?></div>
                     <div style="font-weight: normal; color: #64748b;"><?= Security::e($reporteSeleccionado['firma_cliente_cargo'] ?? 'Gerente / Jefe de Taller') ?></div>
@@ -298,6 +304,22 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
                 </div>
             </div>
 
+            <!-- FIRMA DIGITAL TÁCTIL (CANVAS TABLET / MOUSE) -->
+            <div style="background: #091224; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+                <h3 style="font-size: 14px; color: #fff; margin-bottom: 6px; font-weight: 700;">✍️ Firma Digital Táctil de Conformidad (En Pantalla / Tablet)</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">El cliente receptor o jefe de taller puede firmar directamente sobre la pantalla táctil o con el cursor del mouse.</p>
+                <div style="max-width: 480px;">
+                    <div style="background: #ffffff; border-radius: 6px; position: relative; border: 2px dashed #64748b; height: 130px;">
+                        <canvas id="signature-canvas-cliente" width="480" height="130" style="width: 100%; height: 100%; touch-action: none; cursor: crosshair;"></canvas>
+                    </div>
+                    <input type="hidden" name="firma_cliente_canvas" id="firma_cliente_canvas" value="" />
+                    <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 11px; color: var(--text-muted);">Rúbrica directa del cliente en campo</span>
+                        <button type="button" class="btn btn-sm btn-dark" onclick="clearCanvas('signature-canvas-cliente', 'firma_cliente_canvas')">Limpiar Firma</button>
+                    </div>
+                </div>
+            </div>
+
             <div style="text-align: right; margin-top: 20px;">
                 <button type="submit" class="btn btn-primary" style="padding: 12px 24px;">
                     Guardar y Certificar Reporte Oficial
@@ -316,14 +338,18 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
             <p>Fichas técnicas de servicio expedidas con validez oficial para cada cliente y equipo</p>
         </div>
 
-        <?php if ($isAdmin || $isTech): ?>
         <div class="header-action-buttons">
+            <a href="index.php?action=exportar_csv&tipo=reportes" class="btn btn-dark">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                <span>Exportar CSV / Excel</span>
+            </a>
+            <?php if ($isAdmin || $isTech): ?>
             <a href="index.php?view=reportes&accion=nuevo" class="btn btn-primary">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
                 <span>Emitir Nuevo Reporte</span>
             </a>
+            <?php endif; ?>
         </div>
-        <?php endif; ?>
     </div>
 
     <div class="panel-card">
