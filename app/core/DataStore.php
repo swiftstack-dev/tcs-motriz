@@ -379,6 +379,8 @@ class DataStore {
                     'firma_tecnico_cedula' => 'CED-TEC-992014',
                     'firma_cliente_nombre' => 'Carlos Mendoza',
                     'firma_cliente_cargo' => 'Jefe de Taller Ford Interlomas',
+                    'foto_antes' => 'uploads/evidencias/evidencia_antes_muestra.jpg',
+                    'foto_despues' => 'uploads/evidencias/evidencia_despues_muestra.jpg',
                     'consumibles' => [
                         ['descripcion' => 'Aceite Hidráulico ISO VG 46 (1 Lt)', 'cantidad' => 1],
                         ['descripcion' => 'Grasa Sintética Chasis', 'cantidad' => 1]
@@ -555,11 +557,26 @@ class DataStore {
         }
 
         $raw = file_get_contents(self::$storeFile);
-        $decoded = json_decode($raw, true);
-        if (!$decoded || !is_array($decoded)) {
-            $default = self::initDefaultData();
-            self::$memoryData = $default;
-            return $default;
+        $default = self::initDefaultData();
+        $modified = false;
+        foreach ($default as $k => $v) {
+            if (!isset($decoded[$k])) {
+                $decoded[$k] = $v;
+                $modified = true;
+            }
+        }
+        if (!empty($decoded['reportes_mantenimiento'])) {
+            foreach ($decoded['reportes_mantenimiento'] as &$rep) {
+                if ($rep['id'] == 1 && empty($rep['foto_antes'])) {
+                    $rep['foto_antes'] = 'uploads/evidencias/evidencia_antes_muestra.jpg';
+                    $rep['foto_despues'] = 'uploads/evidencias/evidencia_despues_muestra.jpg';
+                    $modified = true;
+                }
+            }
+            unset($rep);
+        }
+        if ($modified) {
+            @file_put_contents(self::$storeFile, json_encode($decoded, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE), LOCK_EX);
         }
 
         self::$memoryData = $decoded;
@@ -980,6 +997,78 @@ class DataStore {
     }
 
     /**
+     * Algoritmo de Fatiga Mecánica y Vida Útil Predictiva por Horas de Ciclo (Mejora 4)
+     * Especificaciones de seguridad industrial TCS Motriz para elevadores automotrices:
+     * - Cables de ecualización de acero trenzado: límite 1,500 hrs o 3 años
+     * - Fluido hidráulico ISO 32 / VG 46: límite 1,000 hrs o anual
+     * - Almohadillas de goma de brazos de apoyo: límite 800 hrs
+     */
+    public static function getDesgastePredictivo(array $equipo): array {
+        $horas = (int)($equipo['horas_uso'] ?? 0);
+
+        // 1. Cables de Acero (1,500 hrs)
+        $limiteCables = 1500;
+        $horasCables = $horas % $limiteCables;
+        if ($horas > 0 && $horasCables === 0) $horasCables = $limiteCables;
+        $pctCables = min(100, (int)round(($horasCables / $limiteCables) * 100));
+        $estadoCables = $pctCables >= 90 ? 'critico' : ($pctCables >= 75 ? 'advertencia' : 'optimo');
+
+        // 2. Fluido Hidráulico ISO 32 (1,000 hrs)
+        $limiteFluido = 1000;
+        $horasFluido = $horas % $limiteFluido;
+        if ($horas > 0 && $horasFluido === 0) $horasFluido = $limiteFluido;
+        $pctFluido = min(100, (int)round(($horasFluido / $limiteFluido) * 100));
+        $estadoFluido = $pctFluido >= 90 ? 'critico' : ($pctFluido >= 75 ? 'advertencia' : 'optimo');
+
+        // 3. Almohadillas de Goma (800 hrs)
+        $limiteGomas = 800;
+        $horasGomas = $horas % $limiteGomas;
+        if ($horas > 0 && $horasGomas === 0) $horasGomas = $limiteGomas;
+        $pctGomas = min(100, (int)round(($horasGomas / $limiteGomas) * 100));
+        $estadoGomas = $pctGomas >= 90 ? 'critico' : ($pctGomas >= 75 ? 'advertencia' : 'optimo');
+
+        return [
+            'horas_acumuladas' => $horas,
+            'cables' => [
+                'nombre' => 'Cables de Ecualización de Acero',
+                'norma' => 'Vida recomendada: 1,500 hrs / 3 años',
+                'horas_consumidas' => $horasCables,
+                'horas_limite' => $limiteCables,
+                'horas_restantes' => max(0, $limiteCables - $horasCables),
+                'porcentaje' => $pctCables,
+                'estado' => $estadoCables,
+                'recomendacion' => $pctCables >= 90 
+                    ? 'RECAMBIO URGENTE: Riesgo de corte por fatiga de hilos trenzados' 
+                    : ($pctCables >= 75 ? 'Programar recambio preventivo y pedido a Rotary/BendPak' : 'Tensión simétrica y lubricación conforme')
+            ],
+            'fluido' => [
+                'nombre' => 'Fluido Hidráulico ISO 32 / VG 46',
+                'norma' => 'Vida recomendada: 1,000 hrs / Anual',
+                'horas_consumidas' => $horasFluido,
+                'horas_limite' => $limiteFluido,
+                'horas_restantes' => max(0, $limiteFluido - $horasFluido),
+                'porcentaje' => $pctFluido,
+                'estado' => $estadoFluido,
+                'recomendacion' => $pctFluido >= 90 
+                    ? 'PURGA Y CAMBIO INMEDIATO: Degradación térmica y pérdida de viscosidad' 
+                    : ($pctFluido >= 75 ? 'Verificar acidez y nivel en depósito antes de degradación' : 'Viscosidad cinemática y presión nominal óptimas')
+            ],
+            'gomas' => [
+                'nombre' => 'Almohadillas de Goma de Brazos de Apoyo',
+                'norma' => 'Vida recomendada: 800 hrs de izaje',
+                'horas_consumidas' => $horasGomas,
+                'horas_limite' => $limiteGomas,
+                'horas_restantes' => max(0, $limiteGomas - $horasGomas),
+                'porcentaje' => $pctGomas,
+                'estado' => $estadoGomas,
+                'recomendacion' => $pctGomas >= 90 
+                    ? 'SUSTITUCIÓN INMEDIATA: Desgaste crítico con riesgo de deslizamiento' 
+                    : ($pctGomas >= 75 ? 'Desgaste visible en estrías de contacto' : 'Espesor y textura antideslizante segura')
+            ]
+        ];
+    }
+
+    /**
      * Motor Dinámico de Alertas Técnicas y Monitoreo de Salud Operativa
      */
     public static function getAlertas(?int $idSucursal = null, ?int $idTaller = null): array {
@@ -1069,23 +1158,28 @@ class DataStore {
                 }
             }
 
-            // D. Alerta de Horas de Operación / Fatiga Mecánica (> 2000 horas)
-            if (($eq['horas_uso'] ?? 0) >= 2000) {
-                $alertas[] = [
-                    'id' => 'ALT-EQ-' . $eq['id'] . '-HORAS',
-                    'tipo' => 'fatiga_mecanica',
-                    'severidad' => 'media',
-                    'badge' => '⚙️ USO INTENSIVO',
-                    'titulo' => 'Umbral de Horas Superado: ' . $eq['codigo_tcs'] . ' (' . number_format($eq['horas_uso']) . ' hrs)',
-                    'codigo_equipo' => $eq['codigo_tcs'],
-                    'equipo_id' => $eq['id'],
-                    'ubicacion' => $eq['ubicacion_nombre'],
-                    'mensaje' => 'El elevador ha superado las 2,000 horas de ciclo. Requiere reemplazo preventivo de aceite hidráulico ISO 32 y torqueado de pernos de anclaje.',
-                    'fecha_deteccion' => $hoy,
-                    'accion_sugerida' => 'Inspección de cables de ecualización y nivel de fluidos.',
-                    'accion_url' => 'index.php?view=equipos&detalle_id=' . $eq['id'],
-                    'accion_texto' => 'Inspeccionar'
-                ];
+            // D. Mantenimiento Predictivo por Desgaste de Horas / Ciclos (Mejora 4)
+            $desgaste = self::getDesgastePredictivo($eq);
+            foreach (['cables', 'fluido', 'gomas'] as $compKey) {
+                $comp = $desgaste[$compKey];
+                if ($comp['porcentaje'] >= 80) {
+                    $sev = $comp['porcentaje'] >= 90 ? 'critica' : 'alta';
+                    $alertas[] = [
+                        'id' => 'ALT-PRED-' . $eq['id'] . '-' . strtoupper($compKey),
+                        'tipo' => 'predictivo_desgaste',
+                        'severidad' => $sev,
+                        'badge' => '⏳ PREDICTIVO / CICLOS',
+                        'titulo' => "Fatiga Mecánica: {$comp['nombre']} al {$comp['porcentaje']}%",
+                        'codigo_equipo' => $eq['codigo_tcs'],
+                        'equipo_id' => $eq['id'],
+                        'ubicacion' => $eq['ubicacion_nombre'],
+                        'mensaje' => "El elevador acumula {$eq['horas_uso']} hrs. Componente ha consumido {$comp['horas_consumidas']} de {$comp['horas_limite']} hrs recomendadas ({$comp['porcentaje']}%). {$comp['recomendacion']}.",
+                        'fecha_deteccion' => $hoy,
+                        'accion_sugerida' => "Programar recambio preventivo antes de fallo o paro en bahía.",
+                        'accion_url' => 'index.php?view=equipos&detalle_id=' . $eq['id'],
+                        'accion_texto' => 'Ver Desgaste'
+                    ];
+                }
             }
         }
 
