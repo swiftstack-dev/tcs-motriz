@@ -166,22 +166,43 @@ $equipoDetalle = $detalleId ? DataStore::getEquipoById($detalleId) : null;
 
 <!-- MODAL VISUALIZADOR DE CÓDIGO QR PARA PEGAR EN ELEVADOR -->
 <div id="modal-qr-expediente" class="modal-backdrop">
-    <div class="modal-dialog" style="max-width: 420px; text-align: center;">
+    <div class="modal-dialog" style="max-width: 440px; text-align: center;">
         <div class="modal-header">
-            <div class="modal-title">Código QR Técnico para Elevador</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">Etiqueta QR Certificada para Elevador</div>
+            </div>
             <button class="modal-close" data-close-modal>&times;</button>
         </div>
         <div class="modal-body" style="display: flex; flex-direction: column; align-items: center;">
-            <div id="qr-modal-canvas-box" style="padding: 14px; background: #fff; border-radius: 8px; margin-bottom: 14px; display: inline-block;"></div>
-            <h3 id="qr-modal-codigo" class="code-badge" style="font-size: 16px; margin-bottom: 6px;">TCS-EQ-001</h3>
-            <div id="qr-modal-nombre" style="font-weight: 700; font-size: 14px; color: #fff;"></div>
-            <div id="qr-modal-meta" style="font-size: 12px; color: var(--text-secondary); margin-top: 4px;"></div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 14px; border-top: 1px solid var(--border-subtle); padding-top: 10px;">
-                Adherir esta etiqueta plastificada en la columna de control del elevador para inspección rápida con teléfono móvil.
+            <!-- PLACA INDUSTRIAL IMPRIMIBLE -->
+            <div id="qr-printable-plate" style="background: #ffffff; color: #0f172a; border: 3px solid #0f172a; border-radius: 8px; padding: 18px 20px; width: 100%; max-width: 340px; box-shadow: 0 4px 14px rgba(0,0,0,0.3); text-align: center;">
+                <div style="display: flex; align-items: center; justify-content: center; gap: 10px; margin-bottom: 8px; border-bottom: 2px solid #b91c1c; padding-bottom: 8px;">
+                    <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 38px; object-fit: contain;">
+                    <div style="text-align: left;">
+                        <div style="font-weight: 900; font-size: 13px; color: #b91c1c; line-height: 1.1;">TCS MOTRIZ</div>
+                        <div style="font-size: 8px; font-weight: 700; color: #475569; letter-spacing: 0.5px;">INGENIERÍA & TELEMETRÍA</div>
+                    </div>
+                </div>
+
+                <div id="qr-modal-canvas-box" style="padding: 6px; background: #fff; margin: 6px auto; display: inline-block;"></div>
+                
+                <div id="qr-modal-codigo" style="font-family: monospace; font-size: 17px; font-weight: 900; color: #0284c7; margin-top: 4px;">TCS-EQ-001</div>
+                <div id="qr-modal-nombre" style="font-weight: 800; font-size: 12px; color: #0f172a; margin-top: 2px;"></div>
+                <div id="qr-modal-meta" style="font-size: 10px; color: #475569; margin-top: 2px;"></div>
+
+                <div style="font-size: 8px; color: #64748b; margin-top: 10px; border-top: 1px dashed #cbd5e1; padding-top: 6px; line-height: 1.3;">
+                    Escanee con la cámara para telemetría, bitácora y checklist diario.<br>
+                    <strong>Soporte 24/7: 55-8000-4277 • servicio-tcsmotriz.com.mx</strong>
+                </div>
+            </div>
+
+            <div style="font-size: 11px; color: var(--text-muted); margin-top: 14px;">
+                Adherir esta etiqueta plastificada en la columna de control del elevador.
             </div>
         </div>
         <div class="modal-footer" style="justify-content: center;">
-            <button class="btn btn-primary btn-print-report">Imprimir Etiqueta</button>
+            <button class="btn btn-primary btn-print-report">Imprimir Etiqueta Industrial</button>
             <button class="btn btn-dark" data-close-modal>Cerrar</button>
         </div>
     </div>
@@ -191,7 +212,10 @@ $equipoDetalle = $detalleId ? DataStore::getEquipoById($detalleId) : null;
 <div id="modal-checklist-preoperativo" class="modal-backdrop">
     <div class="modal-dialog" style="max-width: 540px;">
         <div class="modal-header">
-            <div class="modal-title">⚡ Checklist Pre-operativo de Seguridad (5 Min)</div>
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS" style="height: 24px; object-fit: contain;">
+                <div class="modal-title">⚡ Checklist Pre-operativo de Seguridad (5 Min)</div>
+            </div>
             <button class="modal-close" data-close-modal>&times;</button>
         </div>
         <form method="POST" action="index.php?action=guardar_checklist">
