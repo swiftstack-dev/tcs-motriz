@@ -978,4 +978,159 @@ class DataStore {
         Logger::log('SUBMIT_DAILY_CHECKLIST', 'checklists_diarios', (string)$id, ['equipo_id' => $item['id_equipo']]);
         return $id;
     }
+
+    /**
+     * Motor Dinámico de Alertas Técnicas y Monitoreo de Salud Operativa
+     */
+    public static function getAlertas(?int $idSucursal = null, ?int $idTaller = null): array {
+        $equipos = self::getEquipos($idSucursal, $idTaller);
+        $ordenes = self::getOrdenes($idSucursal, $idTaller);
+        $inventario = self::getInventario();
+        $alertas = [];
+        $hoy = date('Y-m-d');
+        $limitePreventivo = date('Y-m-d', strtotime('+30 days'));
+
+        // 1. Alertas por Equipos
+        foreach ($equipos as $eq) {
+            // A. Falla Crítica / Fuera de Servicio
+            if ($eq['estado_salud'] === 'fuera_servicio') {
+                $alertas[] = [
+                    'id' => 'ALT-EQ-' . $eq['id'] . '-CRIT',
+                    'tipo' => 'falla_critica',
+                    'severidad' => 'critica',
+                    'badge' => '🔴 FALLA CRÍTICA',
+                    'titulo' => 'Equipo / Rampa Fuera de Servicio: ' . $eq['nombre'],
+                    'codigo_equipo' => $eq['codigo_tcs'],
+                    'equipo_id' => $eq['id'],
+                    'ubicacion' => $eq['ubicacion_nombre'],
+                    'mensaje' => 'La rampa ha sido bloqueada por riesgo operacional o falla severa. Bahía inoperativa.',
+                    'fecha_deteccion' => $eq['ultimo_mantenimiento'] ?? $hoy,
+                    'accion_sugerida' => 'Despachar orden correctiva de emergencia y peritaje presencial.',
+                    'accion_url' => 'index.php?view=reportes&accion=nuevo&equipo_id=' . $eq['id'],
+                    'accion_texto' => 'Atender / Reporte'
+                ];
+            }
+
+            // B. Estado Observado / Tolerancias comprometidas
+            if ($eq['estado_salud'] === 'observado') {
+                $alertas[] = [
+                    'id' => 'ALT-EQ-' . $eq['id'] . '-OBS',
+                    'tipo' => 'desviacion_tolerancia',
+                    'severidad' => 'alta',
+                    'badge' => '🟠 ATENCIÓN REQUERIDA',
+                    'titulo' => 'Desviación de Tolerancia: ' . $eq['nombre'],
+                    'codigo_equipo' => $eq['codigo_tcs'],
+                    'equipo_id' => $eq['id'],
+                    'ubicacion' => $eq['ubicacion_nombre'],
+                    'mensaje' => 'Equipo operando con holgura o desbalanceo: ' . ($eq['notas_tecnicas'] ?? 'Revisar calibración.'),
+                    'fecha_deteccion' => $eq['ultimo_mantenimiento'] ?? $hoy,
+                    'accion_sugerida' => 'Programar ajuste técnico antes de fallo mayor.',
+                    'accion_url' => 'index.php?view=equipos&detalle_id=' . $eq['id'],
+                    'accion_texto' => 'Ver Expediente'
+                ];
+            }
+
+            // C. Mantenimiento Preventivo Vencido o Próximo (< 30 días)
+            if (!empty($eq['proximo_mantenimiento'])) {
+                if ($eq['proximo_mantenimiento'] < $hoy) {
+                    $diasVencido = (int)((strtotime($hoy) - strtotime($eq['proximo_mantenimiento'])) / 86400);
+                    $alertas[] = [
+                        'id' => 'ALT-EQ-' . $eq['id'] . '-VENC',
+                        'tipo' => 'mantenimiento_vencido',
+                        'severidad' => 'critica',
+                        'badge' => '🚨 MANTENIMIENTO VENCIDO',
+                        'titulo' => 'Mantenimiento Preventivo Vencido: ' . $eq['nombre'],
+                        'codigo_equipo' => $eq['codigo_tcs'],
+                        'equipo_id' => $eq['id'],
+                        'ubicacion' => $eq['ubicacion_nombre'],
+                        'mensaje' => "El ciclo preventivo normativo venció hace {$diasVencido} días ({$eq['proximo_mantenimiento']}). Riesgo de pérdida de certificación NOM/OSHA.",
+                        'fecha_deteccion' => $eq['proximo_mantenimiento'],
+                        'accion_sugerida' => 'Emitir reporte de servicio y renovar inspección.',
+                        'accion_url' => 'index.php?view=reportes&accion=nuevo&equipo_id=' . $eq['id'],
+                        'accion_texto' => 'Emitir Reporte'
+                    ];
+                } elseif ($eq['proximo_mantenimiento'] <= $limitePreventivo) {
+                    $diasFaltan = (int)((strtotime($eq['proximo_mantenimiento']) - strtotime($hoy)) / 86400);
+                    $alertas[] = [
+                        'id' => 'ALT-EQ-' . $eq['id'] . '-PROX',
+                        'tipo' => 'mantenimiento_proximo',
+                        'severidad' => 'media',
+                        'badge' => '🟡 PRÓXIMO SERVICIO',
+                        'titulo' => 'Próximo Servicio Preventivo: ' . $eq['nombre'],
+                        'codigo_equipo' => $eq['codigo_tcs'],
+                        'equipo_id' => $eq['id'],
+                        'ubicacion' => $eq['ubicacion_nombre'],
+                        'mensaje' => "Servicio programado para el {$eq['proximo_mantenimiento']} (en {$diasFaltan} días). Agendar visita técnica con anticipación.",
+                        'fecha_deteccion' => $hoy,
+                        'accion_sugerida' => 'Confirmar disponibilidad de bahía con cliente.',
+                        'accion_url' => 'index.php?view=ordenes',
+                        'accion_texto' => 'Ver Órdenes'
+                    ];
+                }
+            }
+
+            // D. Alerta de Horas de Operación / Fatiga Mecánica (> 2000 horas)
+            if (($eq['horas_uso'] ?? 0) >= 2000) {
+                $alertas[] = [
+                    'id' => 'ALT-EQ-' . $eq['id'] . '-HORAS',
+                    'tipo' => 'fatiga_mecanica',
+                    'severidad' => 'media',
+                    'badge' => '⚙️ USO INTENSIVO',
+                    'titulo' => 'Umbral de Horas Superado: ' . $eq['codigo_tcs'] . ' (' . number_format($eq['horas_uso']) . ' hrs)',
+                    'codigo_equipo' => $eq['codigo_tcs'],
+                    'equipo_id' => $eq['id'],
+                    'ubicacion' => $eq['ubicacion_nombre'],
+                    'mensaje' => 'El elevador ha superado las 2,000 horas de ciclo. Requiere reemplazo preventivo de aceite hidráulico ISO 32 y torqueado de pernos de anclaje.',
+                    'fecha_deteccion' => $hoy,
+                    'accion_sugerida' => 'Inspección de cables de ecualización y nivel de fluidos.',
+                    'accion_url' => 'index.php?view=equipos&detalle_id=' . $eq['id'],
+                    'accion_texto' => 'Inspeccionar'
+                ];
+            }
+        }
+
+        // 2. Alertas por Órdenes de Servicio Urgentes Pendientes
+        foreach ($ordenes as $ord) {
+            if (($ord['estado'] === 'pendiente' || $ord['estado'] === 'en_proceso') && in_array($ord['prioridad'], ['alta', 'critica'])) {
+                $alertas[] = [
+                    'id' => 'ALT-ORD-' . $ord['id'],
+                    'tipo' => 'orden_urgente',
+                    'severidad' => ($ord['prioridad'] === 'critica' ? 'critica' : 'alta'),
+                    'badge' => '⚡ ORDEN URGENTE',
+                    'titulo' => 'Orden de Servicio Sin Concluir: ' . $ord['folio'],
+                    'codigo_equipo' => $ord['equipo_codigo'],
+                    'equipo_id' => $ord['id_equipo'] ?? null,
+                    'ubicacion' => $ord['ubicacion'],
+                    'mensaje' => 'Falla reportada: ' . $ord['descripcion_falla'],
+                    'fecha_deteccion' => $ord['fecha_solicitud'],
+                    'accion_sugerida' => 'Asignar técnico especialista inmediatamente.',
+                    'accion_url' => 'index.php?view=reportes&accion=nuevo&orden_id=' . $ord['id'],
+                    'accion_texto' => 'Atender Orden'
+                ];
+            }
+        }
+
+        // 3. Alertas por Refacciones con Stock Crítico
+        foreach ($inventario as $inv) {
+            if (!empty($inv['bajo_stock'])) {
+                $alertas[] = [
+                    'id' => 'ALT-INV-' . $inv['id'],
+                    'tipo' => 'stock_critico',
+                    'severidad' => 'media',
+                    'badge' => '📦 STOCK CRÍTICO',
+                    'titulo' => 'Insumo Bajo Mínimo: ' . $inv['descripcion'],
+                    'codigo_equipo' => $inv['codigo_parte'],
+                    'equipo_id' => null,
+                    'ubicacion' => 'Almacén Central TCS',
+                    'mensaje' => "Existencias actuales: {$inv['stock_actual']} {$inv['unidad_medida']}(s) (Mínimo de reorden: {$inv['stock_minimo']}).",
+                    'fecha_deteccion' => $hoy,
+                    'accion_sugerida' => 'Emitir pedido de compra a proveedor.',
+                    'accion_url' => 'index.php?view=inventario',
+                    'accion_texto' => 'Reabastecer'
+                ];
+            }
+        }
+
+        return $alertas;
+    }
 }
