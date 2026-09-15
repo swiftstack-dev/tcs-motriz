@@ -33,7 +33,15 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
          ===================================================================== -->
     <div style="margin-bottom: 20px; display: flex; justify-content: space-between; align-items: center;" class="btn-no-print">
         <a href="index.php?view=reportes" class="btn btn-dark">← Volver a la Lista de Reportes</a>
-        <div style="display: flex; gap: 10px;">
+        <div style="display: flex; gap: 10px; align-items: center;">
+            <?php
+            $waRepMsg = "Estimado cliente, TCS Motriz certifica el Reporte Técnico Oficial Folio " . $reporteSeleccionado['folio_reporte'] . " para el equipo " . $reporteSeleccionado['equipo_nombre'] . " (" . $reporteSeleccionado['equipo_codigo'] . ") con Dictamen: " . strtoupper($reporteSeleccionado['dictamen_final']) . ". Soporte 24/7: 55-8000-4277.";
+            $waRepUrl = "https://api.whatsapp.com/send?text=" . urlencode($waRepMsg);
+            ?>
+            <a href="<?= $waRepUrl ?>" target="_blank" rel="noopener noreferrer" class="btn btn-emerald" style="background:#16a34a;color:#fff;border-color:#15803d;display:inline-flex;align-items:center;gap:6px;" title="Compartir Dictamen Técnico vía WhatsApp">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                <span>WhatsApp</span>
+            </a>
             <button class="btn btn-primary btn-print-report">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect x="6" y="14" width="12" height="8"/></svg>
                 Imprimir / Guardar en PDF
@@ -159,6 +167,40 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
             </tbody>
         </table>
 
+        <!-- 5. EVIDENCIA FOTOGRÁFICA TÉCNICA (ANTES Y DESPUÉS) -->
+        <div class="report-section-title">5. Registro de Evidencia Fotográfica y Auditoría Visual (Antes y Después)</div>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 20px;">
+            <!-- FOTO ANTES -->
+            <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc; text-align: center;">
+                <div style="font-size: 11px; font-weight: 800; color: #b91c1c; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">
+                    [ EVIDENCIA INICIAL: HALLAZGO / CONDICIÓN PREVIA ]
+                </div>
+                <?php if (!empty($reporteSeleccionado['foto_antes'])): ?>
+                    <img src="<?= Security::e($reporteSeleccionado['foto_antes']) ?>" alt="Evidencia Antes" style="max-width: 100%; height: 210px; object-fit: cover; border-radius: 4px; border: 1px solid #94a3b8; display: block; margin: 0 auto;" />
+                <?php else: ?>
+                    <div style="height: 140px; background: #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 11px; border: 1px dashed #cbd5e1;">
+                        Sin evidencia inicial registrada
+                    </div>
+                <?php endif; ?>
+                <div style="font-size: 10px; color: #475569; margin-top: 6px;">Foto pericial tomada al arribo a bahía</div>
+            </div>
+
+            <!-- FOTO DESPUÉS -->
+            <div style="border: 1px solid #cbd5e1; border-radius: 6px; padding: 10px; background: #f8fafc; text-align: center;">
+                <div style="font-size: 11px; font-weight: 800; color: #15803d; text-transform: uppercase; margin-bottom: 8px; letter-spacing: 0.5px;">
+                    [ EVIDENCIA FINAL: COMPONENTE INSTALADO Y CALIBRADO ]
+                </div>
+                <?php if (!empty($reporteSeleccionado['foto_despues'])): ?>
+                    <img src="<?= Security::e($reporteSeleccionado['foto_despues']) ?>" alt="Evidencia Después" style="max-width: 100%; height: 210px; object-fit: cover; border-radius: 4px; border: 1px solid #94a3b8; display: block; margin: 0 auto;" />
+                <?php else: ?>
+                    <div style="height: 140px; background: #e2e8f0; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #64748b; font-size: 11px; border: 1px dashed #cbd5e1;">
+                        Sin evidencia final registrada
+                    </div>
+                <?php endif; ?>
+                <div style="font-size: 10px; color: #475569; margin-top: 6px;">Verificación de apriete dinámico y entrega</div>
+            </div>
+        </div>
+
         <!-- FIRMAS DE CONFORMIDAD Y CERTIFICACIÓN -->
         <div class="signatures-box">
             <div>
@@ -213,7 +255,7 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
             <span class="badge-status status-operativo" style="padding: 6px 12px;">ISO 9001 / NOM-OSHA</span>
         </div>
 
-        <form method="POST" action="index.php?action=guardar_reporte">
+        <form method="POST" action="index.php?action=guardar_reporte" enctype="multipart/form-data">
             <?= csrf_field() ?>
             <?php if ($ordenPreviaId): ?>
                 <input type="hidden" name="id_orden" value="<?= $ordenPreviaId ?>">
@@ -322,18 +364,58 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
                 </div>
             </div>
 
-            <!-- FIRMA DIGITAL TÁCTIL (CANVAS TABLET / MOUSE) -->
+            <!-- EVIDENCIA FOTOGRÁFICA TÉCNICA (ANTES Y DESPUÉS) -->
             <div style="background: #091224; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
-                <h3 style="font-size: 14px; color: #fff; margin-bottom: 6px; font-weight: 700;">✍️ Firma Digital Táctil de Conformidad (En Pantalla / Tablet)</h3>
-                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 12px;">El cliente receptor o jefe de taller puede firmar directamente sobre la pantalla táctil o con el cursor del mouse.</p>
-                <div style="max-width: 480px;">
-                    <div style="background: #ffffff; border-radius: 6px; position: relative; border: 2px dashed #64748b; height: 130px;">
-                        <canvas id="signature-canvas-cliente" width="480" height="130" style="width: 100%; height: 100%; touch-action: none; cursor: crosshair;"></canvas>
+                <h3 style="font-size: 14px; color: #fff; margin-bottom: 6px; font-weight: 700;">📸 Registro de Evidencia Fotográfica Técnica (Antes y Después)</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">Adjunte las fotografías tomadas en bahía para respaldo legal ante auditorías y aseguradoras.</p>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px;">
+                    <div>
+                        <label class="form-label">Evidencia Inicial (Daño / Falla / Condición Previa)</label>
+                        <input type="file" name="foto_antes" id="input_foto_antes" accept="image/*" class="form-control" onchange="previewImage(this, 'preview_foto_antes')" />
+                        <div id="box_preview_antes" style="margin-top: 8px; display: none; text-align: center;">
+                            <img id="preview_foto_antes" src="" alt="Vista previa antes" style="max-height: 140px; border-radius: 4px; border: 1px solid var(--border-subtle);" />
+                        </div>
                     </div>
-                    <input type="hidden" name="firma_cliente_canvas" id="firma_cliente_canvas" value="" />
-                    <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
-                        <span style="font-size: 11px; color: var(--text-muted);">Rúbrica directa del cliente en campo</span>
-                        <button type="button" class="btn btn-sm btn-dark" onclick="clearCanvas('signature-canvas-cliente', 'firma_cliente_canvas')">Limpiar Firma</button>
+                    <div>
+                        <label class="form-label">Evidencia Final (Refacción Nueva / Calibración OK)</label>
+                        <input type="file" name="foto_despues" id="input_foto_despues" accept="image/*" class="form-control" onchange="previewImage(this, 'preview_foto_despues')" />
+                        <div id="box_preview_despues" style="margin-top: 8px; display: none; text-align: center;">
+                            <img id="preview_foto_despues" src="" alt="Vista previa después" style="max-height: 140px; border-radius: 4px; border: 1px solid var(--border-subtle);" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- FIRMAS DIGITALES TÁCTILES (TÉCNICO Y CLIENTE EN PANTALLA / TABLET) -->
+            <div style="background: #091224; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 16px; margin: 16px 0;">
+                <h3 style="font-size: 14px; color: #fff; margin-bottom: 6px; font-weight: 700;">✍️ Firmas Digitales Táctiles de Certificación (En Pantalla / Tablet)</h3>
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">Estampe la rúbrica directamente sobre la pantalla táctil del smartphone, tablet o con el cursor del mouse.</p>
+                
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px;">
+                    <!-- LIENZO TÉCNICO -->
+                    <div>
+                        <label class="form-label" style="font-weight: 700; color: #38bdf8;">1. Rúbrica del Técnico Especialista TCS</label>
+                        <div style="background: #ffffff; border-radius: 6px; position: relative; border: 2px dashed #0284c7; height: 120px;">
+                            <canvas id="signature-canvas-tecnico" width="400" height="120" style="width: 100%; height: 100%; touch-action: none; cursor: crosshair;"></canvas>
+                        </div>
+                        <input type="hidden" name="firma_tecnico_canvas" id="firma_tecnico_canvas" value="" />
+                        <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; color: var(--text-muted);"><?= Security::e($currentUser['nombre']) ?></span>
+                            <button type="button" class="btn btn-sm btn-dark" onclick="clearCanvas('signature-canvas-tecnico', 'firma_tecnico_canvas')">Limpiar Firma</button>
+                        </div>
+                    </div>
+
+                    <!-- LIENZO CLIENTE -->
+                    <div>
+                        <label class="form-label" style="font-weight: 700; color: #10b981;">2. Rúbrica de Conformidad del Cliente / Taller</label>
+                        <div style="background: #ffffff; border-radius: 6px; position: relative; border: 2px dashed #059669; height: 120px;">
+                            <canvas id="signature-canvas-cliente" width="400" height="120" style="width: 100%; height: 100%; touch-action: none; cursor: crosshair;"></canvas>
+                        </div>
+                        <input type="hidden" name="firma_cliente_canvas" id="firma_cliente_canvas" value="" />
+                        <div style="margin-top: 6px; display: flex; justify-content: space-between; align-items: center;">
+                            <span style="font-size: 11px; color: var(--text-muted);">Receptor en Bahía</span>
+                            <button type="button" class="btn btn-sm btn-dark" onclick="clearCanvas('signature-canvas-cliente', 'firma_cliente_canvas')">Limpiar Firma</button>
+                        </div>
                     </div>
                 </div>
             </div>
