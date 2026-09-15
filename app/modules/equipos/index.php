@@ -93,7 +93,101 @@ $equipoDetalle = $detalleId ? DataStore::getEquipoById($detalleId) : null;
         <div><strong>Próximo Mantenimiento:</strong> <?= Security::e($equipoDetalle['proximo_mantenimiento'] ?? 'N/A') ?></div>
     </div>
 
-    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; border-top: 1px solid #1c2e56; padding-top: 14px;">
+    <!-- MATRIZ DE DESGASTE MECÁNICO Y VIDA ÚTIL PREDICTIVA (MEJORA 4) -->
+    <?php
+    $desgaste = DataStore::getDesgastePredictivo($equipoDetalle);
+    $alertaDesgaste = ($desgaste['cables']['porcentaje'] >= 75 || $desgaste['fluido']['porcentaje'] >= 75 || $desgaste['gomas']['porcentaje'] >= 75);
+    ?>
+    <div style="background: #081022; border: 1px solid var(--border-subtle); border-radius: var(--radius-sm); padding: 18px; margin-bottom: 20px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 18px;">⏳</span>
+                <div>
+                    <div style="font-size: 14px; font-weight: 800; color: #fff;">Telemetría de Ciclos & Desgaste Mecánico Predictivo</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Algoritmo de fatiga basado en <?= number_format($desgaste['horas_acumuladas']) ?> hrs efectivas de izaje industrial</div>
+                </div>
+            </div>
+            <span class="code-badge" style="background: rgba(14, 165, 233, 0.15); color: #38bdf8; border: 1px solid rgba(14, 165, 233, 0.3); font-size: 12px; padding: 4px 10px;">
+                Norma ANSI / ALI ALCTV
+            </span>
+        </div>
+
+        <?php if ($alertaDesgaste): ?>
+            <div style="background: rgba(245, 158, 11, 0.12); border: 1px solid rgba(245, 158, 11, 0.35); border-radius: 6px; padding: 10px 14px; margin-bottom: 16px; font-size: 12px; color: #fbbf24; display: flex; align-items: center; gap: 8px;">
+                <span>⚠️</span>
+                <div><strong>Alerta Preventiva Temprana:</strong> Rampa <?= Security::e($equipoDetalle['codigo_tcs']) ?> al <?= $desgaste['cables']['porcentaje'] ?>% de ciclo en cables de ecualización. Programar recambio para evitar paros en bahía.</div>
+            </div>
+        <?php endif; ?>
+
+        <div style="display: flex; flex-direction: column; gap: 16px;">
+            <!-- 1. CABLES DE ECUALIZACIÓN -->
+            <?php
+            $c = $desgaste['cables'];
+            $barColor = $c['porcentaje'] >= 90 ? '#ef4444' : ($c['porcentaje'] >= 75 ? '#f59e0b' : '#10b981');
+            ?>
+            <div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                    <span style="color: #fff; font-weight: 700;">1. <?= $c['nombre'] ?></span>
+                    <span style="color: <?= $barColor ?>; font-weight: 800; font-family: var(--font-mono);"><?= $c['porcentaje'] ?>% Consumido (<?= $c['horas_restantes'] ?> hrs restantes)</span>
+                </div>
+                <div style="height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden;">
+                    <div style="width: <?= $c['porcentaje'] ?>%; height: 100%; background: <?= $barColor ?>; transition: width 0.4s ease;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                    <span><?= $c['norma'] ?></span>
+                    <span style="color: <?= $barColor ?>;"><?= $c['recomendacion'] ?></span>
+                </div>
+            </div>
+
+            <!-- 2. FLUIDO HIDRÁULICO -->
+            <?php
+            $f = $desgaste['fluido'];
+            $barColorF = $f['porcentaje'] >= 90 ? '#ef4444' : ($f['porcentaje'] >= 75 ? '#f59e0b' : '#10b981');
+            ?>
+            <div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                    <span style="color: #fff; font-weight: 700;">2. <?= $f['nombre'] ?></span>
+                    <span style="color: <?= $barColorF ?>; font-weight: 800; font-family: var(--font-mono);"><?= $f['porcentaje'] ?>% Consumido (<?= $f['horas_restantes'] ?> hrs restantes)</span>
+                </div>
+                <div style="height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden;">
+                    <div style="width: <?= $f['porcentaje'] ?>%; height: 100%; background: <?= $barColorF ?>; transition: width 0.4s ease;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                    <span><?= $f['norma'] ?></span>
+                    <span style="color: <?= $barColorF ?>;"><?= $f['recomendacion'] ?></span>
+                </div>
+            </div>
+
+            <!-- 3. ALMOHADILLAS DE GOMA -->
+            <?php
+            $g = $desgaste['gomas'];
+            $barColorG = $g['porcentaje'] >= 90 ? '#ef4444' : ($g['porcentaje'] >= 75 ? '#f59e0b' : '#10b981');
+            ?>
+            <div>
+                <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px;">
+                    <span style="color: #fff; font-weight: 700;">3. <?= $g['nombre'] ?></span>
+                    <span style="color: <?= $barColorG ?>; font-weight: 800; font-family: var(--font-mono);"><?= $g['porcentaje'] ?>% Consumido (<?= $g['horas_restantes'] ?> hrs restantes)</span>
+                </div>
+                <div style="height: 8px; background: #1e293b; border-radius: 4px; overflow: hidden;">
+                    <div style="width: <?= $g['porcentaje'] ?>%; height: 100%; background: <?= $barColorG ?>; transition: width 0.4s ease;"></div>
+                </div>
+                <div style="display: flex; justify-content: space-between; font-size: 11px; color: var(--text-muted); margin-top: 4px;">
+                    <span><?= $g['norma'] ?></span>
+                    <span style="color: <?= $barColorG ?>;"><?= $g['recomendacion'] ?></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px; border-top: 1px solid #1c2e56; padding-top: 14px; align-items: center;">
+        <?php
+        $waEqMsg = "Hola, comparto expediente de la rampa " . $equipoDetalle['nombre'] . " (" . $equipoDetalle['codigo_tcs'] . "): Estado " . strtoupper($equipoDetalle['estado_salud']) . ", horas de uso: " . $equipoDetalle['horas_uso'] . " hrs. Desgaste en cables: " . $desgaste['cables']['porcentaje'] . "%. Soporte TCS Motriz: 55-8000-4277.";
+        $waEqUrl = "https://api.whatsapp.com/send?text=" . urlencode($waEqMsg);
+        ?>
+        <a href="<?= $waEqUrl ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-emerald" style="background:#16a34a;color:#fff;border-color:#15803d;display:inline-flex;align-items:center;gap:6px;" title="Compartir Expediente y Telemetría vía WhatsApp">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+            <span>WhatsApp</span>
+        </a>
         <button class="btn btn-sm btn-cyan" onclick="showQRModal('<?= Security::e($equipoDetalle['codigo_tcs']) ?>', '<?= Security::e($equipoDetalle['nombre']) ?>', '<?= Security::e($equipoDetalle['marca']) ?>', '<?= Security::e($equipoDetalle['numero_serie']) ?>', '<?= Security::e($equipoDetalle['ubicacion_bahia'] ?? '') ?>')">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
             Imprimir Código QR de Bahía
@@ -158,6 +252,13 @@ $equipoDetalle = $detalleId ? DataStore::getEquipoById($detalleId) : null;
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
                         Imprimir QR
                     </button>
+                    <?php
+                    $waCardMsg = "Reporte de rampa " . $eq['nombre'] . " (" . $eq['codigo_tcs'] . "): Estado " . strtoupper($eq['estado_salud']) . " en " . ($eq['ubicacion_nombre'] ?? 'Taller') . ". Contactar a TCS Motriz: 55-8000-4277.";
+                    $waCardUrl = "https://api.whatsapp.com/send?text=" . urlencode($waCardMsg);
+                    ?>
+                    <a href="<?= $waCardUrl ?>" target="_blank" rel="noopener noreferrer" class="btn btn-sm btn-emerald" style="background:#16a34a;color:#fff;border-color:#15803d;padding:4px 7px;display:inline-flex;align-items:center;" title="Notificar vía WhatsApp">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><path d="M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.652zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zm11.387-5.464c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/></svg>
+                    </a>
                 </div>
             </div>
         <?php endforeach; ?>
