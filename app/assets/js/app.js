@@ -291,3 +291,18 @@ function clearCanvas(canvasId, inputHiddenId) {
     if (input) input.value = '';
 }
 
+function previewImage(inputElement, imgElementId) {
+    if (inputElement.files && inputElement.files[0]) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            const img = document.getElementById(imgElementId);
+            if (img) {
+                img.src = e.target.result;
+                const parent = img.parentElement;
+                if (parent) parent.style.display = 'block';
+            }
+        };
+        reader.readAsDataURL(inputElement.files[0]);
+    }
+}
+
