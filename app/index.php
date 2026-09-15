@@ -177,6 +177,63 @@ if ($action === 'exportar_csv') {
             $eqCount = count(array_filter($eqs, fn($e) => ($e['id_taller'] ?? 0) == $t['id']));
             fputcsv($out, ['Taller Independiente', $t['razon_social'], $t['rfc'], $t['direccion'], $t['telefono'], $t['email'], $t['gerente_servicio'] ?? 'N/A', $t['jefe_taller'] ?? 'N/A', 'Local Único', $eqCount]);
         }
+    } elseif ($tipo === 'proveedores') {
+        fputcsv($out, ['Razón Social', 'RFC', 'Contacto / Asesor', 'Teléfono', 'Email', 'Especialidad', 'Días Crédito']);
+        $provs = DataStore::getProveedores();
+        foreach ($provs as $p) {
+            fputcsv($out, [
+                $p['razon_social'],
+                $p['rfc'],
+                $p['contacto'],
+                $p['telefono'],
+                $p['email'],
+                $p['categoria'],
+                $p['dias_credito'] . ' días'
+            ]);
+        }
+    } elseif ($tipo === 'envios') {
+        fputcsv($out, ['Folio TCS', 'Guía Carrier', 'Transportista', 'Tipo Destino', 'Destinatario', 'Dirección Entrega', 'Teléfono', 'Fecha Despacho', 'Fecha Estimada', 'Fecha Entrega Real', 'Estado', 'Costo Flete (MXN)', 'Piezas Enviadas', 'Recibió']);
+        $guias = DataStore::getGuiasEnvio();
+        foreach ($guias as $g) {
+            $piezasTexto = [];
+            foreach ($g['piezas'] ?? [] as $pz) {
+                $piezasTexto[] = ($pz['cantidad'] ?? 1) . 'x ' . ($pz['codigo_parte'] ?? 'Pza');
+            }
+            fputcsv($out, [
+                $g['folio_guia'],
+                $g['no_guia_carrier'],
+                $g['transportista'],
+                ucfirst($g['tipo_destino']),
+                $g['destinatario_nombre'],
+                $g['direccion_entrega'],
+                $g['telefono_contacto'],
+                $g['fecha_despacho'],
+                $g['fecha_estimada_entrega'],
+                $g['fecha_entrega_real'] ?? 'En tránsito',
+                strtoupper($g['estado']),
+                number_format((float)($g['costo_flete'] ?? 0), 2),
+                implode(' ; ', $piezasTexto),
+                $g['quien_recibio'] ?? 'Pendiente'
+            ]);
+        }
+    } elseif ($tipo === 'movimientos_inventario') {
+        fputcsv($out, ['ID', 'Fecha / Hora', 'Código Refacción', 'Descripción', 'Tipo Movimiento', 'Cantidad', 'Stock Anterior', 'Stock Nuevo', 'Motivo / Concepto', 'Referencia', 'Usuario Autoriza']);
+        $movs = DataStore::getMovimientosInventario();
+        foreach ($movs as $m) {
+            fputcsv($out, [
+                $m['id'],
+                $m['created_at'],
+                $m['codigo_parte'],
+                $m['descripcion'],
+                strtoupper($m['tipo_movimiento']),
+                $m['cantidad'],
+                $m['stock_anterior'],
+                $m['stock_nuevo'],
+                $m['motivo'],
+                $m['referencia'],
+                $m['usuario_nombre']
+            ]);
+        }
     }
     fclose($out);
     exit;
@@ -549,6 +606,143 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 header('Location: index.php?view=proveedores&msg=proveedor_creado');
                 exit;
 
+            case 'editar_refaccion':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $idRef = Security::sanitizeInt($_POST['id']);
+                DataStore::updateRefaccion($idRef, [
+                    'codigo_parte'      => Security::sanitizeString($_POST['codigo_parte']),
+                    'descripcion'       => Security::sanitizeString($_POST['descripcion']),
+                    'categoria'         => Security::sanitizeString($_POST['categoria']),
+                    'stock_minimo'      => Security::sanitizeInt($_POST['stock_minimo']),
+                    'unidad_medida'     => Security::sanitizeString($_POST['unidad_medida']),
+                    'costo_unitario'    => (float)$_POST['costo_unitario'],
+                    'id_proveedor'      => !empty($_POST['id_proveedor']) ? Security::sanitizeInt($_POST['id_proveedor']) : null,
+                    'ubicacion_estante' => Security::sanitizeString($_POST['ubicacion_estante'] ?? 'Almacén Central')
+                ]);
+                header('Location: index.php?view=inventario&msg=refaccion_actualizada');
+                exit;
+
+            case 'eliminar_refaccion':
+                if (!Auth::isAdmin()) die('No autorizado');
+                DataStore::deleteRefaccion(Security::sanitizeInt($_POST['id']));
+                header('Location: index.php?view=inventario&msg=refaccion_eliminada');
+                exit;
+
+            case 'registrar_movimiento_stock':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $idRef = Security::sanitizeInt($_POST['id_refaccion']);
+                $cant = Security::sanitizeInt($_POST['cantidad']);
+                $tipoMov = Security::sanitizeString($_POST['tipo_movimiento'] ?? 'ajuste');
+                $motivo = Security::sanitizeString($_POST['motivo'] ?? 'Ajuste de inventario');
+                $ref = Security::sanitizeString($_POST['referencia'] ?? 'MANUAL');
+                DataStore::registrarMovimientoStock($idRef, $cant, $tipoMov, $motivo, $ref, $currentUser['id']);
+                header('Location: index.php?view=inventario&tab=movimientos&msg=stock_actualizado');
+                exit;
+
+            case 'editar_proveedor':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $idProv = Security::sanitizeInt($_POST['id']);
+                DataStore::updateProveedor($idProv, [
+                    'razon_social' => Security::sanitizeString($_POST['razon_social']),
+                    'rfc'          => Security::sanitizeString($_POST['rfc']),
+                    'contacto'     => Security::sanitizeString($_POST['contacto']),
+                    'telefono'     => Security::sanitizeString($_POST['telefono']),
+                    'email'        => Security::sanitizeEmail($_POST['email']),
+                    'categoria'    => Security::sanitizeString($_POST['categoria']),
+                    'dias_credito' => Security::sanitizeInt($_POST['dias_credito'] ?? 30)
+                ]);
+                header('Location: index.php?view=proveedores&msg=proveedor_actualizado');
+                exit;
+
+            case 'eliminar_proveedor':
+                if (!Auth::isAdmin()) die('No autorizado');
+                DataStore::deleteProveedor(Security::sanitizeInt($_POST['id']));
+                header('Location: index.php?view=proveedores&msg=proveedor_eliminado');
+                exit;
+
+            case 'crear_guia_envio':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $tipoDestino = Security::sanitizeString($_POST['tipo_destino'] ?? 'sucursal');
+                $idSuc = ($tipoDestino === 'sucursal' && !empty($_POST['id_sucursal'])) ? Security::sanitizeInt($_POST['id_sucursal']) : null;
+                $idTal = ($tipoDestino === 'taller' && !empty($_POST['id_taller'])) ? Security::sanitizeInt($_POST['id_taller']) : null;
+                $idTec = ($tipoDestino === 'tecnico' && !empty($_POST['id_tecnico'])) ? Security::sanitizeInt($_POST['id_tecnico']) : null;
+
+                $piezasEnviadas = [];
+                if (!empty($_POST['piezas_id']) && is_array($_POST['piezas_id'])) {
+                    foreach ($_POST['piezas_id'] as $idx => $pzId) {
+                        $pzIdInt = (int)$pzId;
+                        $cantPz = isset($_POST['piezas_cant'][$idx]) ? (int)$_POST['piezas_cant'][$idx] : 1;
+                        if ($pzIdInt > 0 && $cantPz > 0) {
+                            $refObj = DataStore::getRefaccionById($pzIdInt);
+                            if ($refObj) {
+                                $piezasEnviadas[] = [
+                                    'id_refaccion'  => $pzIdInt,
+                                    'codigo_parte'  => $refObj['codigo_parte'],
+                                    'descripcion'   => $refObj['descripcion'],
+                                    'cantidad'      => $cantPz,
+                                    'unidad_medida' => $refObj['unidad_medida'] ?? 'Pza'
+                                ];
+                            }
+                        }
+                    }
+                }
+
+                $carrier = Security::sanitizeString($_POST['transportista'] ?? 'DHL Express');
+                $noGuiaCarrier = Security::sanitizeString($_POST['no_guia_carrier'] ?? '');
+                
+                $trackingUrl = '';
+                if (stripos($carrier, 'dhl') !== false) {
+                    $trackingUrl = 'https://www.dhl.com/mx-es/home/tracking.html?tracking-id=' . urlencode($noGuiaCarrier);
+                } elseif (stripos($carrier, 'fedex') !== false) {
+                    $trackingUrl = 'https://www.fedex.com/fedextrack/?trknbr=' . urlencode($noGuiaCarrier);
+                } elseif (stripos($carrier, 'estafeta') !== false) {
+                    $trackingUrl = 'https://www.estafeta.com/Herramientas/Rastreo';
+                } elseif (stripos($carrier, 'paquetexpress') !== false) {
+                    $trackingUrl = 'https://www.paquetexpress.com.mx/';
+                } else {
+                    $trackingUrl = 'index.php?view=envios';
+                }
+
+                $descontarStock = !empty($_POST['descontar_stock']);
+
+                DataStore::createGuiaEnvio([
+                    'no_guia_carrier'        => $noGuiaCarrier,
+                    'transportista'          => $carrier,
+                    'tipo_destino'           => $tipoDestino,
+                    'id_sucursal'            => $idSuc,
+                    'id_taller'              => $idTal,
+                    'id_tecnico'             => $idTec,
+                    'destinatario_nombre'    => Security::sanitizeString($_POST['destinatario_nombre']),
+                    'direccion_entrega'      => Security::sanitizeString($_POST['direccion_entrega']),
+                    'telefono_contacto'      => Security::sanitizeString($_POST['telefono_contacto'] ?? ''),
+                    'fecha_despacho'         => Security::sanitizeString($_POST['fecha_despacho'] ?? date('Y-m-d')),
+                    'fecha_estimada_entrega' => Security::sanitizeString($_POST['fecha_estimada_entrega'] ?? date('Y-m-d', strtotime('+1 day'))),
+                    'estado'                 => 'en_transito',
+                    'costo_flete'            => (float)($_POST['costo_flete'] ?? 0),
+                    'notas'                  => Security::sanitizeString($_POST['notas'] ?? ''),
+                    'tracking_url'           => $trackingUrl,
+                    'piezas'                 => $piezasEnviadas
+                ], $descontarStock);
+
+                header('Location: index.php?view=envios&msg=guia_creada');
+                exit;
+
+            case 'actualizar_estado_guia':
+                if (!Auth::isAdmin() && !Auth::isTechnician()) die('No autorizado');
+                $idGuia = Security::sanitizeInt($_POST['id']);
+                $nuevoEstado = Security::sanitizeString($_POST['estado']);
+                $notas = Security::sanitizeString($_POST['notas'] ?? '');
+                $recibio = Security::sanitizeString($_POST['quien_recibio'] ?? '');
+                DataStore::updateEstadoGuia($idGuia, $nuevoEstado, $notas, $recibio);
+                header('Location: index.php?view=envios&msg=estado_actualizado');
+                exit;
+
+            case 'eliminar_guia_envio':
+                if (!Auth::isAdmin()) die('No autorizado');
+                DataStore::deleteGuiaEnvio(Security::sanitizeInt($_POST['id']));
+                header('Location: index.php?view=envios&msg=guia_eliminada');
+                exit;
+
             case 'enviar_mensaje':
                 DataStore::enviarMensaje(
                     $currentUser['id'],
@@ -575,6 +769,8 @@ $allowedViews = [
     'reportes',
     'inventario',
     'proveedores',
+    'envios',
+    'guias',
     'mensajeria',
     'credenciales',
     'auditoria'
@@ -588,6 +784,8 @@ $matrices = DataStore::getMatrices();
 $sucursales = DataStore::getSucursales();
 $talleres = DataStore::getTalleres();
 $equipos = DataStore::getEquipos();
+$proveedores = DataStore::getProveedores();
+$guiasActivas = count(array_filter(DataStore::getGuiasEnvio(), fn($g) => in_array($g['estado'], ['preparacion', 'en_transito'])));
 $globalAlertas = DataStore::getAlertas(Auth::isClient() ? ($currentUser['id_sucursal'] ?? null) : null, Auth::isClient() ? ($currentUser['id_taller'] ?? null) : null);
 $critCount = count(array_filter($globalAlertas, fn($a) => $a['severidad'] === 'critica'));
 ?>
@@ -664,7 +862,7 @@ $critCount = count(array_filter($globalAlertas, fn($a) => $a['severidad'] === 'c
                 </div>
             </a>
 
-            <div class="nav-section-title">Almacén & Proveedores</div>
+            <div class="nav-section-title">Almacén & Logística</div>
 
             <a href="index.php?view=inventario" class="nav-item <?= ($view === 'inventario' ? 'active' : '') ?>">
                 <div class="nav-label-group">
@@ -678,6 +876,17 @@ $critCount = count(array_filter($globalAlertas, fn($a) => $a['severidad'] === 'c
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
                     <span>Registro Proveedores</span>
                 </div>
+                <span class="nav-badge"><?= count($proveedores) ?></span>
+            </a>
+
+            <a href="index.php?view=envios" class="nav-item <?= ($view === 'envios' || $view === 'guias' ? 'active' : '') ?>">
+                <div class="nav-label-group">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>
+                    <span>Guías de Envío</span>
+                </div>
+                <?php if ($guiasActivas > 0): ?>
+                    <span class="nav-badge" style="background:#0284c7;color:#fff;"><?= $guiasActivas ?> en ruta</span>
+                <?php endif; ?>
             </a>
 
             <div class="nav-section-title">Comunicación & Accesos</div>
