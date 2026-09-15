@@ -38,6 +38,10 @@ $equipoDetalle = $detalleId ? DataStore::getEquipoById($detalleId) : null;
     </div>
 
     <div class="header-action-buttons">
+        <a href="index.php?action=exportar_csv&tipo=equipos" class="btn btn-dark">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            <span>Exportar CSV / Excel</span>
+        </a>
         <?php if ($isAdmin || $isTech): ?>
             <button class="btn btn-primary" onclick="openModal('modal-crear-equipo')">
                 <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
@@ -142,6 +146,10 @@ $equipoDetalle = $detalleId ? DataStore::getEquipoById($detalleId) : null;
                 </div>
 
                 <div class="equipo-card-actions">
+                    <button class="btn btn-sm btn-warning" onclick="openChecklistModal(<?= $eq['id'] ?>, '<?= Security::e($eq['codigo_tcs']) ?>', '<?= Security::e(addslashes($eq['nombre'])) ?>')">
+                        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3L22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+                        Checklist 5m
+                    </button>
                     <button class="btn btn-sm btn-dark" onclick="verExpedienteEquipo(<?= $eq['id'] ?>)">
                         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
                         Expediente
@@ -178,3 +186,81 @@ $equipoDetalle = $detalleId ? DataStore::getEquipoById($detalleId) : null;
         </div>
     </div>
 </div>
+
+<!-- MODAL CHECKLIST PRE-OPERATIVO DE 5 MINUTOS CON BLOQUEO FAILSAFE -->
+<div id="modal-checklist-preoperativo" class="modal-backdrop">
+    <div class="modal-dialog" style="max-width: 540px;">
+        <div class="modal-header">
+            <div class="modal-title">⚡ Checklist Pre-operativo de Seguridad (5 Min)</div>
+            <button class="modal-close" data-close-modal>&times;</button>
+        </div>
+        <form method="POST" action="index.php?action=guardar_checklist">
+            <?= csrf_field() ?>
+            <input type="hidden" name="id_equipo" id="chk-equipo-id" value="" />
+            
+            <div class="modal-body">
+                <div style="background: rgba(14, 165, 233, 0.1); border: 1px solid rgba(14, 165, 233, 0.25); border-radius: var(--radius-sm); padding: 10px 14px; margin-bottom: 14px;">
+                    <div style="font-size: 11px; color: #38bdf8; font-weight: 700; text-transform: uppercase;">Equipo Seleccionado</div>
+                    <div id="chk-equipo-label" style="font-weight: 700; font-size: 13px; color: #fff;"></div>
+                </div>
+
+                <p style="font-size: 12px; color: var(--text-secondary); margin-bottom: 14px;">
+                    Verificación rápida obligatoria antes de operar la rampa. Si detectas un riesgo, el sistema aplicará un bloqueo de seguridad industrial (Failsafe).
+                </p>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px;">
+                    <label style="display: flex; align-items: center; gap: 8px; background: #070e1e; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-subtle); cursor: pointer;">
+                        <input type="checkbox" name="items[seguros_trinquetes]" value="1" checked required />
+                        <span>1. Trinquetes mecánicos engranan firmes y audibles en ascenso</span>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 8px; background: #070e1e; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-subtle); cursor: pointer;">
+                        <input type="checkbox" name="items[cables_poleas]" value="1" checked required />
+                        <span>2. Cables de acero sin deshilachado y con tensión simétrica</span>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 8px; background: #070e1e; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-subtle); cursor: pointer;">
+                        <input type="checkbox" name="items[fugas_hidraulicas]" value="1" checked required />
+                        <span>3. Sin fugas de aceite hidráulico en mangueras ni pistones</span>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 8px; background: #070e1e; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-subtle); cursor: pointer;">
+                        <input type="checkbox" name="items[paro_emergencia]" value="1" checked required />
+                        <span>4. Botón de paro de emergencia y bajada manual operativos</span>
+                    </label>
+
+                    <label style="display: flex; align-items: center; gap: 8px; background: #070e1e; padding: 8px 12px; border-radius: 6px; border: 1px solid var(--border-subtle); cursor: pointer;">
+                        <input type="checkbox" name="items[anclaje_brazos]" value="1" checked required />
+                        <span>5. Columnas rígidamente ancladas y seguros de giro de brazos OK</span>
+                    </label>
+                </div>
+
+                <div class="form-group" style="margin-top: 14px;">
+                    <label class="form-label">Dictamen de la Inspección Rápida *</label>
+                    <select name="resultado" class="form-control" required id="chk-resultado-select">
+                        <option value="aprobado">🟢 Aprobado (Equipo seguro para operar la jornada)</option>
+                        <option value="fallo_critico">🔴 Fallo Crítico Detectado (Bloquear equipo / Failsafe)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Observaciones del Operador / Técnico</label>
+                    <textarea name="observaciones" class="form-control" rows="2" placeholder="Detalla cualquier ruido o anomalía..."></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-dark" data-close-modal>Cancelar</button>
+                <button type="submit" class="btn btn-primary">Registrar Inspección</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+function openChecklistModal(id, codigo, nombre) {
+    document.getElementById('chk-equipo-id').value = id;
+    document.getElementById('chk-equipo-label').innerText = `${codigo} — ${nombre}`;
+    openModal('modal-checklist-preoperativo');
+}
+</script>
