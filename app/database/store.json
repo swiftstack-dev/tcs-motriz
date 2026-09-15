@@ -1,0 +1,528 @@
+{
+    "matrices": [
+        {
+            "id": 1,
+            "razon_social": "Grupo Automotriz Premier S.A. de C.V.",
+            "rfc": "GAP880215-AB1",
+            "direccion": "Av. de las Industrias 500, CDMX",
+            "telefono": "55-5555-0000",
+            "email": "contacto@grupopremier.com",
+            "logo_url": "assets\/img\/matriz-premier.png",
+            "created_at": "2026-08-01 10:00:00"
+        }
+    ],
+    "sucursales": [
+        {
+            "id": 1,
+            "id_matriz": 1,
+            "nombre": "Sucursal Ford Interlomas",
+            "direccion": "Vía Magna 12, Interlomas, Huixquilucan",
+            "telefono": "55-5555-1111",
+            "gerente_servicio": "Ing. Roberto Garza",
+            "jefe_taller": "Carlos Mendoza",
+            "created_at": "2026-08-01 10:15:00"
+        },
+        {
+            "id": 2,
+            "id_matriz": 1,
+            "nombre": "Sucursal Nissan Santa Fe",
+            "direccion": "Vasco de Quiroga 3800, Santa Fe",
+            "telefono": "55-5555-2222",
+            "gerente_servicio": "Lic. Elena Torres",
+            "jefe_taller": "Jorge Morales",
+            "created_at": "2026-08-01 10:30:00"
+        }
+    ],
+    "talleres": [
+        {
+            "id": 1,
+            "razon_social": "Taller Electromecánico Ramírez",
+            "rfc": "EMIR950412-5NB",
+            "direccion": "Av. Patriotismo 120, Escandón, CDMX",
+            "telefono": "55-5555-9911",
+            "email": "contacto@taller-ramirez.com",
+            "gerente_servicio": "Ing. Esteban Ramírez",
+            "jefe_taller": "Roberto Solís",
+            "logo_url": "assets\/img\/taller-ramirez.png",
+            "created_at": "2026-08-05 11:00:00"
+        }
+    ],
+    "usuarios": [
+        {
+            "id": 1,
+            "nombre": "Ing. Fernando Ruiz",
+            "alias": "Admin TCS Motriz",
+            "email": "fernando.ruiz@servicio-tcsmotriz.com.mx",
+            "password_hash": "$2y$12$5W0Q2X5oekZ.xZf1fB4XG.d7wT4aL5FwVfS3Tj5e0Hq4rY5Q7l8Ka",
+            "telefono": "55-1023-4491",
+            "rfc": "RUFI880112-1R4",
+            "rol": "admin",
+            "id_matriz": null,
+            "id_sucursal": null,
+            "id_taller": null,
+            "foto_url": "assets\/img\/avatar-admin.png",
+            "is_online": 1
+        },
+        {
+            "id": 2,
+            "nombre": "Soporte Técnico TCS",
+            "alias": "Soporte",
+            "email": "soporte@servicio-tcsmotriz.com.mx",
+            "password_hash": "$2y$12$5W0Q2X5oekZ.xZf1fB4XG.d7wT4aL5FwVfS3Tj5e0Hq4rY5Q7l8Ka",
+            "telefono": "55-8000-4277",
+            "rfc": "STC191001-8BA",
+            "rol": "soporte",
+            "id_matriz": null,
+            "id_sucursal": null,
+            "id_taller": null,
+            "foto_url": "assets\/img\/avatar-soporte.png",
+            "is_online": 1
+        },
+        {
+            "id": 3,
+            "nombre": "Téc. Héctor Morales",
+            "alias": "Técnico Especialista",
+            "email": "hector.morales@servicio-tcsmotriz.com.mx",
+            "password_hash": "$2y$12$5W0Q2X5oekZ.xZf1fB4XG.d7wT4aL5FwVfS3Tj5e0Hq4rY5Q7l8Ka",
+            "telefono": "55-3322-1780",
+            "rfc": "MORH890120-TR4",
+            "rol": "tecnico",
+            "id_matriz": null,
+            "id_sucursal": null,
+            "id_taller": null,
+            "foto_url": "assets\/img\/avatar-tecnico.png",
+            "is_online": 1
+        },
+        {
+            "id": 4,
+            "nombre": "Carlos Mendoza",
+            "alias": "Carlos M. (Ford Interlomas)",
+            "email": "cmendoza@fordinterlomas.com",
+            "password_hash": "$2y$12$5W0Q2X5oekZ.xZf1fB4XG.d7wT4aL5FwVfS3Tj5e0Hq4rY5Q7l8Ka",
+            "telefono": "55-4433-8822",
+            "rfc": "MENC920314-KL2",
+            "rol": "cliente",
+            "id_matriz": 1,
+            "id_sucursal": 1,
+            "id_taller": null,
+            "foto_url": "assets\/img\/avatar-cliente1.png",
+            "is_online": 1
+        },
+        {
+            "id": 5,
+            "nombre": "Lic. Elena Torres",
+            "alias": "Elena T. (Nissan Santa Fe)",
+            "email": "elena.torres@nissansantafe.com",
+            "password_hash": "$2y$12$5W0Q2X5oekZ.xZf1fB4XG.d7wT4aL5FwVfS3Tj5e0Hq4rY5Q7l8Ka",
+            "telefono": "55-2233-4455",
+            "rfc": "TORE850619-3M1",
+            "rol": "cliente",
+            "id_matriz": 1,
+            "id_sucursal": 2,
+            "id_taller": null,
+            "foto_url": "assets\/img\/avatar-cliente2.png",
+            "is_online": 0
+        },
+        {
+            "id": 6,
+            "nombre": "Ing. Esteban Ramírez",
+            "alias": "Esteban R. (Taller Ramírez)",
+            "email": "contacto@taller-ramirez.com",
+            "password_hash": "$2y$12$5W0Q2X5oekZ.xZf1fB4XG.d7wT4aL5FwVfS3Tj5e0Hq4rY5Q7l8Ka",
+            "telefono": "55-5555-9911",
+            "rfc": "EMIR950412-5NB",
+            "rol": "cliente",
+            "id_matriz": null,
+            "id_sucursal": null,
+            "id_taller": 1,
+            "foto_url": "assets\/img\/avatar-taller.png",
+            "is_online": 0
+        }
+    ],
+    "equipos": [
+        {
+            "id": 1,
+            "codigo_tcs": "TCS-EQ-001",
+            "nombre": "Rampa Hidráulica de 2 Postes (4.5 Ton)",
+            "categoria": "rampa_2_postes",
+            "marca": "BendPak",
+            "modelo": "XPR-10S",
+            "numero_serie": "SN-9948201-MX",
+            "capacidad": "10,000 lbs (4.5 Ton)",
+            "ubicacion_bahia": "Bahía 1 (Mantenimiento Rápido)",
+            "id_sucursal": 1,
+            "id_taller": null,
+            "estado_salud": "operativo",
+            "ultimo_mantenimiento": "2026-07-15",
+            "proximo_mantenimiento": "2026-10-15",
+            "horas_uso": 1420,
+            "qr_token": "QR-TCS-001-9948201",
+            "notas_tecnicas": "Elevador principal para sedanes y SUVs ligeras."
+        },
+        {
+            "id": 2,
+            "codigo_tcs": "TCS-EQ-002",
+            "nombre": "Elevador Tijera para Alineación (5.0 Ton)",
+            "categoria": "elevador_tijera",
+            "marca": "John Bean",
+            "modelo": "Alignment Scissors 5.0",
+            "numero_serie": "SN-8837192-US",
+            "capacidad": "11,000 lbs (5.0 Ton)",
+            "ubicacion_bahia": "Bahía 4 (Alineación y Tramado)",
+            "id_sucursal": 1,
+            "id_taller": null,
+            "estado_salud": "observado",
+            "ultimo_mantenimiento": "2026-05-10",
+            "proximo_mantenimiento": "2026-08-10",
+            "horas_uso": 2150,
+            "qr_token": "QR-TCS-002-8837192",
+            "notas_tecnicas": "Requiere atención en sincronización hidráulica de tijera derecha."
+        },
+        {
+            "id": 3,
+            "codigo_tcs": "TCS-EQ-003",
+            "nombre": "Compresor de Aire Tornillo 15 HP Industrial",
+            "categoria": "compresor",
+            "marca": "Kaeser",
+            "modelo": "SK 15 Industrial",
+            "numero_serie": "SN-3392810-DE",
+            "capacidad": "15 HP \/ 140 PSI",
+            "ubicacion_bahia": "Cuarto de Máquinas Principal",
+            "id_sucursal": 2,
+            "id_taller": null,
+            "estado_salud": "operativo",
+            "ultimo_mantenimiento": "2026-06-20",
+            "proximo_mantenimiento": "2026-09-20",
+            "horas_uso": 3890,
+            "qr_token": "QR-TCS-003-3392810",
+            "notas_tecnicas": "Alimenta toda la red neumática de la agencia Santa Fe."
+        },
+        {
+            "id": 4,
+            "codigo_tcs": "TCS-EQ-004",
+            "nombre": "Desmontadora de Llantas Heavy-Duty",
+            "categoria": "desmontadora",
+            "marca": "Corghi",
+            "modelo": "Artiglio Master 28",
+            "numero_serie": "SN-6541002-IT",
+            "capacidad": "Rines 10\" a 28\"",
+            "ubicacion_bahia": "Bahía Llantera",
+            "id_sucursal": null,
+            "id_taller": 1,
+            "estado_salud": "operativo",
+            "ultimo_mantenimiento": "2026-08-01",
+            "proximo_mantenimiento": "2026-11-01",
+            "horas_uso": 940,
+            "qr_token": "QR-TCS-004-6541002",
+            "notas_tecnicas": "Sistema leverless con brazo de asistencia para llantas runflat."
+        },
+        {
+            "id": 5,
+            "codigo_tcs": "TCS-EQ-005",
+            "nombre": "Torno Rectificador de Discos de Freno Universal",
+            "categoria": "torno_rectificador",
+            "marca": "Ammco \/ Pro-Cut",
+            "modelo": "VTM-3000",
+            "numero_serie": "SN-4411090-US",
+            "capacidad": "Rotor 4\" a 20\"",
+            "ubicacion_bahia": "Bahía Frenos",
+            "id_sucursal": 1,
+            "id_taller": null,
+            "estado_salud": "operativo",
+            "ultimo_mantenimiento": "2026-06-18",
+            "proximo_mantenimiento": "2026-09-18",
+            "horas_uso": 650,
+            "qr_token": "QR-TCS-005-4411090",
+            "notas_tecnicas": "Rectificación montado y de banco con comparador de carátula."
+        },
+        {
+            "id": 6,
+            "codigo_tcs": "TCS-EQ-006",
+            "nombre": "Estación Recuperadora de Refrigerante R-1234yf",
+            "categoria": "recuperadora_1234yf",
+            "marca": "Robinair \/ TCS",
+            "modelo": "AC-1234-YF",
+            "numero_serie": "SN-1234001-MX",
+            "capacidad": "Tanque 12.5 kg A2L",
+            "ubicacion_bahia": "Bahía Clima Automotriz",
+            "id_sucursal": 1,
+            "id_taller": null,
+            "estado_salud": "operativo",
+            "ultimo_mantenimiento": "2026-07-22",
+            "proximo_mantenimiento": "2026-10-22",
+            "horas_uso": 430,
+            "qr_token": "QR-TCS-006-1234001",
+            "notas_tecnicas": "Cumple normas SAE J2843 \/ J2911 para gas inflamable A2L."
+        },
+        {
+            "id": 7,
+            "codigo_tcs": "TCS-EQ-007",
+            "nombre": "Estación Recuperadora de Gas R-134a",
+            "categoria": "recuperadora_r134a",
+            "marca": "Robinair",
+            "modelo": "CoolTech 34788",
+            "numero_serie": "SN-1340092-MX",
+            "capacidad": "Tanque 15.0 kg",
+            "ubicacion_bahia": "Bahía Eléctrica",
+            "id_sucursal": 2,
+            "id_taller": null,
+            "estado_salud": "operativo",
+            "ultimo_mantenimiento": "2026-07-05",
+            "proximo_mantenimiento": "2026-10-05",
+            "horas_uso": 810,
+            "qr_token": "QR-TCS-007-1340092",
+            "notas_tecnicas": "Certificación ISO 9001, filtro Core renovado."
+        },
+        {
+            "id": 8,
+            "codigo_tcs": "TCS-EQ-008",
+            "nombre": "Sistema Universal de Balanceo de Neumáticos",
+            "categoria": "balanceadora",
+            "marca": "Hunter \/ TCS",
+            "modelo": "TCS-RMB-001",
+            "numero_serie": "SN-8820019-DE",
+            "capacidad": "Neumáticos hasta 44\"",
+            "ubicacion_bahia": "Bahía Llantera",
+            "id_sucursal": null,
+            "id_taller": 1,
+            "estado_salud": "fuera_servicio",
+            "ultimo_mantenimiento": "2026-04-12",
+            "proximo_mantenimiento": "2026-07-12",
+            "horas_uso": 1780,
+            "qr_token": "QR-TCS-008-8820019",
+            "notas_tecnicas": "Desviación en sensor piezoeléctrico > 25g. Fuera de servicio temporal."
+        }
+    ],
+    "ordenes_servicio": [
+        {
+            "id": 1,
+            "folio": "ORD-2026-041",
+            "id_equipo": 2,
+            "id_usuario_solicita": 4,
+            "fecha_solicitud": "2026-08-18 10:15:00",
+            "tipo_servicio": "correctivo",
+            "prioridad": "alta",
+            "descripcion_falla": "Elevador Tijera presenta un ligero desfasamiento al subir y requiere nivelación de cables y válvulas.",
+            "estado": "en_proceso",
+            "id_tecnico_asignado": 3
+        },
+        {
+            "id": 2,
+            "folio": "ORD-2026-039",
+            "id_equipo": 1,
+            "id_usuario_solicita": 4,
+            "fecha_solicitud": "2026-08-10 09:00:00",
+            "tipo_servicio": "preventivo",
+            "prioridad": "normal",
+            "descripcion_falla": "Mantenimiento preventivo programado según calendario. Inspección general de cables y fluido ISO 32.",
+            "estado": "concluido",
+            "id_tecnico_asignado": 3
+        },
+        {
+            "id": 3,
+            "folio": "ORD-2026-045",
+            "id_equipo": 8,
+            "id_usuario_solicita": 6,
+            "fecha_solicitud": "2026-08-22 11:30:00",
+            "tipo_servicio": "urgente",
+            "prioridad": "critica",
+            "descripcion_falla": "Transductor piezoeléctrico fuera de tolerancia en desbalance dinámico. Equipo fuera de servicio.",
+            "estado": "pendiente",
+            "id_tecnico_asignado": 3
+        }
+    ],
+    "reportes_mantenimiento": [
+        {
+            "id": 1,
+            "folio_reporte": "REP-TCS-902",
+            "id_orden": 2,
+            "id_equipo": 1,
+            "id_tecnico": 3,
+            "fecha_servicio": "2026-08-10",
+            "tipo_formato": "rampa_2_postes",
+            "matriz_inspeccion": {
+                "estructura_columnas": "OK",
+                "brazos_seguros": "OK",
+                "cables_ecualizacion": "OK",
+                "unidad_hidraulica": "OK",
+                "poleas_pasadores": "OK",
+                "sistema_electrico": "OK",
+                "mecanismos_seguridad": "OK"
+            },
+            "valores_medidos": {
+                "nivel_aceite": "Óptimo ISO 32",
+                "torque_anclajes": "150 ft-lbs",
+                "presion_valvula": "2200 PSI"
+            },
+            "dictamen_final": "operativo",
+            "diagnostico_trabajos": "Se realizó ajuste de tensión en cables de compensación, purga de fluido hidráulico y lubricación de poleas superiores. Trabas de seguridad probadas al 100% de carga.",
+            "firma_tecnico_nombre": "Téc. Héctor Morales",
+            "firma_tecnico_cedula": "CED-TEC-992014",
+            "firma_cliente_nombre": "Carlos Mendoza",
+            "firma_cliente_cargo": "Jefe de Taller Ford Interlomas",
+            "foto_antes": "uploads\/evidencias\/evidencia_antes_muestra.jpg",
+            "foto_despues": "uploads\/evidencias\/evidencia_despues_muestra.jpg",
+            "consumibles": [
+                {
+                    "descripcion": "Aceite Hidráulico ISO VG 46 (1 Lt)",
+                    "cantidad": 1
+                },
+                {
+                    "descripcion": "Grasa Sintética Chasis",
+                    "cantidad": 1
+                }
+            ]
+        }
+    ],
+    "proveedores": [
+        {
+            "id": 1,
+            "razon_social": "Rotary Lift de México S.A. de C.V.",
+            "rfc": "RLM990115-99A",
+            "contacto": "Ing. Arturo Salgado",
+            "telefono": "55-4000-8800",
+            "email": "ventas@rotarylift.mx",
+            "categoria": "Elevadores y Rampas",
+            "dias_credito": 30
+        },
+        {
+            "id": 2,
+            "razon_social": "Lubricantes y Fluidos Industriales S.A.",
+            "rfc": "LFI100420-KK1",
+            "contacto": "Lic. Rodrigo Pérez",
+            "telefono": "55-7000-1122",
+            "email": "pedidos@lubri-ind.com",
+            "categoria": "Aceites y Fluidos Hidráulicos",
+            "dias_credito": 15
+        },
+        {
+            "id": 3,
+            "razon_social": "Corghi y Equipos Automotrices Norte",
+            "rfc": "CEA080312-7L9",
+            "contacto": "Marco Aurelio Vega",
+            "telefono": "55-6600-4400",
+            "email": "mvega@corghinorte.com",
+            "categoria": "Llantas y Desmontadoras",
+            "dias_credito": 30
+        },
+        {
+            "id": 4,
+            "razon_social": "Refrigerantes Ecológicos y Válvulas S.A.",
+            "rfc": "REV150830-4P0",
+            "contacto": "Ing. Gabriela Silva",
+            "telefono": "55-9988-7711",
+            "email": "gsilva@refrig-eco.mx",
+            "categoria": "Gases R-1234yf \/ R-134a",
+            "dias_credito": 15
+        }
+    ],
+    "inventario_refacciones": [
+        {
+            "id": 1,
+            "codigo_parte": "OIL-ISO32-19L",
+            "descripcion": "Cubeta Aceite Hidráulico Anti-Desgaste ISO 32 (19L)",
+            "categoria": "Fluidos Hidráulicos",
+            "stock_actual": 24,
+            "stock_minimo": 6,
+            "unidad_medida": "Cubeta",
+            "costo_unitario": 1450,
+            "id_proveedor": 2,
+            "estado_pieza": "nuevo",
+            "ubicacion_estante": "Pasillo A - Estante 1"
+        },
+        {
+            "id": 2,
+            "codigo_parte": "CAB-SPO10-EQ",
+            "descripcion": "Juego de Cables de Ecualización Acero Alta Tensión 3\/8\"",
+            "categoria": "Cables y Poleas",
+            "stock_actual": 8,
+            "stock_minimo": 2,
+            "unidad_medida": "Juego",
+            "costo_unitario": 3200,
+            "id_proveedor": 1,
+            "estado_pieza": "nuevo",
+            "ubicacion_estante": "Pasillo B - Estante 3"
+        },
+        {
+            "id": 3,
+            "codigo_parte": "PAD-ROT-GOM",
+            "descripcion": "Juego de 4 Almohadillas de Goma para Brazos Rotary",
+            "categoria": "Gomas y Protecciones",
+            "stock_actual": 18,
+            "stock_minimo": 5,
+            "unidad_medida": "Juego",
+            "costo_unitario": 980,
+            "id_proveedor": 1,
+            "estado_pieza": "nuevo",
+            "ubicacion_estante": "Pasillo A - Gaveta 4"
+        },
+        {
+            "id": 4,
+            "codigo_parte": "BUR-TORN-TCS",
+            "descripcion": "Buril de Corte Triangular de Carburo de Tungsteno para Torno",
+            "categoria": "Herramientas de Corte",
+            "stock_actual": 45,
+            "stock_minimo": 10,
+            "unidad_medida": "Pza",
+            "costo_unitario": 320,
+            "id_proveedor": 3,
+            "estado_pieza": "nuevo",
+            "ubicacion_estante": "Pasillo C - Cajón 2"
+        },
+        {
+            "id": 5,
+            "codigo_parte": "FLT-REC-CORE",
+            "descripcion": "Filtro Deshidratador Core para Estación Recuperadora R134a",
+            "categoria": "Filtración y Clima",
+            "stock_actual": 14,
+            "stock_minimo": 4,
+            "unidad_medida": "Pza",
+            "costo_unitario": 890,
+            "id_proveedor": 4,
+            "estado_pieza": "nuevo",
+            "ubicacion_estante": "Pasillo D - Estante 2"
+        },
+        {
+            "id": 6,
+            "codigo_parte": "KIT-ORING-J2888",
+            "descripcion": "Kit de O-Rings y Sellos de Neopreno para Acoples SAE J2888",
+            "categoria": "Sellos y O-Rings",
+            "stock_actual": 30,
+            "stock_minimo": 8,
+            "unidad_medida": "Kit",
+            "costo_unitario": 450,
+            "id_proveedor": 4,
+            "estado_pieza": "nuevo",
+            "ubicacion_estante": "Pasillo D - Gaveta 1"
+        }
+    ],
+    "mensajes": [
+        {
+            "id": 1,
+            "id_remitente": 4,
+            "id_destinatario": 2,
+            "mensaje": "Buenas tardes Soporte, solicité la revisión del elevador de tijera para alineación en Interlomas.",
+            "hora": "14:20",
+            "created_at": "2026-08-18 14:20:00"
+        },
+        {
+            "id": 2,
+            "id_remitente": 2,
+            "id_destinatario": 4,
+            "mensaje": "Hola Carlos, Recibido. El Técnico Héctor Morales ya tiene asignada la orden ORD-2026-041 y acude hoy por la tarde.",
+            "hora": "14:22",
+            "created_at": "2026-08-18 14:22:00"
+        }
+    ],
+    "checklists_diarios": [
+        {
+            "id": 1,
+            "id_equipo": 1,
+            "fecha_turno": "2026-08-20",
+            "operador_nombre": "Carlos Mendoza",
+            "supervisor_nombre": "Ing. Roberto Garza",
+            "dictamen_seguridad": "cumple",
+            "observaciones": "Rampa en perfectas condiciones de operación. Cables con tensión uniforme."
+        }
+    ]
+}
