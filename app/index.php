@@ -34,6 +34,70 @@ if ($action === 'switch_role') {
     exit;
 }
 
+// Exportación industrial de datos a CSV/Excel (Compatible con UTF-8 BOM e ISO 27001)
+if ($action === 'exportar_csv') {
+    $tipo = Security::sanitizeString($_GET['tipo'] ?? 'inventario');
+    $filename = "tcs_motriz_{$tipo}_" . date('Ymd_His') . ".csv";
+
+    header('Content-Type: text/csv; charset=utf-8');
+    header('Content-Disposition: attachment; filename="' . $filename . '"');
+    header('Pragma: no-cache');
+    header('Expires: 0');
+
+    $out = fopen('php://output', 'w');
+    fprintf($out, chr(0xEF).chr(0xBB).chr(0xBF)); // UTF-8 BOM para Excel
+
+    if ($tipo === 'inventario') {
+        fputcsv($out, ['Código Parte', 'Descripción', 'Categoría', 'Stock Actual', 'Stock Mínimo', 'Unidad Medida', 'Costo Unitario (MXN)', 'Proveedor']);
+        $inv = DataStore::getInventario();
+        foreach ($inv as $i) {
+            fputcsv($out, [
+                $i['codigo_parte'],
+                $i['descripcion'],
+                $i['categoria'],
+                $i['stock_actual'],
+                $i['stock_minimo'],
+                $i['unidad_medida'],
+                number_format($i['costo_unitario'], 2),
+                $i['proveedor_nombre'] ?? 'N/A'
+            ]);
+        }
+    } elseif ($tipo === 'ordenes') {
+        fputcsv($out, ['Folio Orden', 'Fecha Solicitud', 'Equipo', 'Ubicación Bahía', 'Tipo Servicio', 'Prioridad', 'Estado', 'Solicitante']);
+        $ords = DataStore::getOrdenes();
+        foreach ($ords as $o) {
+            fputcsv($out, [
+                $o['folio_orden'],
+                $o['fecha_solicitud'],
+                $o['equipo_nombre'] ?? 'N/A',
+                $o['ubicacion_bahia'] ?? 'N/A',
+                $o['tipo_servicio'],
+                $o['prioridad'],
+                $o['estado'],
+                $o['solicitante_nombre'] ?? 'N/A'
+            ]);
+        }
+    } elseif ($tipo === 'equipos') {
+        fputcsv($out, ['Código TCS', 'Nombre', 'Marca', 'Modelo', 'No. Serie', 'Capacidad', 'Ubicación Bahía', 'Estado Salud', 'Horas Operación']);
+        $eqs = DataStore::getEquipos();
+        foreach ($eqs as $e) {
+            fputcsv($out, [
+                $e['codigo_tcs'],
+                $e['nombre'],
+                $e['marca'],
+                $e['modelo'],
+                $e['numero_serie'],
+                $e['capacidad'] ?? 'N/A',
+                $e['ubicacion_bahia'] ?? 'N/A',
+                $e['estado_salud'],
+                $e['horas_uso'] ?? 0
+            ]);
+        }
+    }
+    fclose($out);
+    exit;
+}
+
 // Procesar peticiones POST protegidas con CSRF
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $csrfToken = $_POST['csrf_token'] ?? '';
@@ -161,11 +225,43 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'firma_tecnico_cedula' => $currentUser['rfc'] ?? 'CED-TEC-992014',
                     'firma_cliente_nombre' => Security::sanitizeString($_POST['firma_cliente_nombre']),
                     'firma_cliente_cargo'  => 'Jefe de Bahía / Cliente',
+                    'firma_digital_tecnico'=> !empty($_POST['firma_tecnico_canvas']) ? $_POST['firma_tecnico_canvas'] : null,
+                    'firma_digital_cliente'=> !empty($_POST['firma_cliente_canvas']) ? $_POST['firma_cliente_canvas'] : null,
                     'consumibles'          => [
                         ['descripcion' => 'Insumo de Mantenimiento Preventivo', 'cantidad' => 1]
                     ]
                 ]);
                 header('Location: index.php?view=reportes&reporte_id=' . $nuevoRepId . '&msg=reporte_creado');
+                exit;
+
+            case 'guardar_checklist':
+                $idEquipo = Security::sanitizeInt($_POST['id_equipo']);
+                $resultado = Security::sanitizeString($_POST['resultado'] ?? 'aprobado');
+                $observaciones = Security::sanitizeString($_POST['observaciones'] ?? '');
+                $items = $_POST['items'] ?? [];
+                
+                DataStore::createChecklist([
+                    'id_equipo' => $idEquipo,
+                    'id_usuario' => $currentUser['id'],
+                    'fecha' => date('Y-m-d H:i:s'),
+                    'resultado' => $resultado,
+                    'items_json' => json_encode($items),
+                    'observaciones' => $observaciones
+                ]);
+
+                if ($resultado === 'fallo_critico') {
+                    DataStore::updateEquipoHealth($idEquipo, 'fuera_servicio');
+                    DataStore::createOrden([
+                        'id_equipo' => $idEquipo,
+                        'id_usuario_solicita' => $currentUser['id'],
+                        'tipo_servicio' => 'correctivo_urgente',
+                        'prioridad' => 'critica',
+                        'descripcion_falla' => 'FAILSAFE ACTIVADO POR CHECKLIST PRE-OPERATIVO: ' . $observaciones
+                    ]);
+                    header('Location: index.php?view=equipos&detalle_id=' . $idEquipo . '&msg=failsafe_activado');
+                } else {
+                    header('Location: index.php?view=equipos&detalle_id=' . $idEquipo . '&msg=checklist_ok');
+                }
                 exit;
 
             case 'crear_refaccion':
