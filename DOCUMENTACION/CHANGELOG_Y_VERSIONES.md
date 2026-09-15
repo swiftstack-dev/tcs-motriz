@@ -5,6 +5,30 @@
 
 ### Control de Versiones
 
+#### [v1.6.0-PROD] — 2026-09-15 (Tríada Logística: Inventario de Piezas, Proveedores Calificados y Guías de Envío)
+*Implementación del ecosistema logístico y de suministros integral para TCS Motriz: control de almacén central con Kárdex y valuación de activos, directorio autogestionable de proveedores con enlaces directos a WhatsApp/cotización, y nuevo módulo de despacho de guías de envío con trazabilidad de paqueterías (DHL, FedEx, Estafeta, Paquetexpress y TCS Directo).*
+
+##### 📦 1. Inventario Integral de Piezas, Kárdex y Valuación (`app/modules/inventario/index.php`)
+- **Catálogo Central de Refacciones**: Alta, edición, ajuste de existencias y eliminación de piezas con códigos SKU, estado de la pieza, stock mínimo de seguridad y ubicación física en estanterías/racks.
+- **Kárdex y Bitácora de Movimientos**: Registro cronológico de auditoría con tipo de movimiento (Entrada 🟢, Salida 🔴, Ajuste 🔄), cálculo automático de stock resultante, motivo/justificación, documento de respaldo y usuario que autoriza.
+- **Valuación Financiera del Almacén**: Cuadro de mando financiero con inversión monetaria en refacciones desglosada por categoría de insumo y porcentaje de participación en el activo fijo del almacén.
+- **Exportación Dual**: Exportación a Excel/CSV del catálogo de piezas (`tipo=inventario`) y del kárdex de movimientos (`tipo=movimientos_inventario`).
+
+##### 🏭 2. Directorio Autogestionable de Proveedores Automotrices (`app/modules/proveedores/index.php`)
+- **Gestión 100% Autónoma**: Alta, edición y baja de distribuidores autorizados y fabricantes (Rotary, Kaeser, Lubricantes Industriales, Corghi).
+- **Botón Directo a WhatsApp**: Enlace preconfigurado para contactar al asesor comercial vía WhatsApp con mensaje de cotización redactado automáticamente.
+- **Canales Directos en 1 Clic**: Botón de marcación telefónica directa y botón de correo con plantilla formal de cotización.
+- **Condiciones Comerciales y Catálogo**: Visualización de días de crédito autorizados y chips de refacciones provistas en el inventario.
+- **Exportación a CSV / Excel**: Directorio calificado exportable (`tipo=proveedores`).
+
+##### 🚚 3. Guías de Envío y Despachos Logísticos (`app/modules/envios/index.php`)
+- **Nuevo Módulo de Trazabilidad Logística**: Registro y monitoreo de paquetes despachados desde el Almacén Central hacia agencias, talleres mecánicos o técnicos en campo.
+- **Integración con Paqueterías Nacionales**: Soporte para DHL Express, FedEx Express, Estafeta Terrestre, Paquetexpress y Logística Directa TCS Motriz con enlaces dinámicos de rastreo web.
+- **Descuento Automático de Inventario**: Al emitir un despacho, el sistema aparta y descuenta las piezas enviadas del inventario central automáticamente.
+- **Ciclo de Vida del Envío**: Estados operativos `preparacion` (🟡), `en_transito` (🔵), `entregado` (🟢) e `incidencia` (🔴) con registro de acuse y nombre de quien recibió.
+- **Remisión de Salida Imprimible**: Formato oficial para imprimir el comprobante de despacho con lista de refacciones, datos de destino y recuadro de firma de recepción.
+- **Exportación a CSV / Excel**: Bitácora completa de guías y fletes (`tipo=envios`).
+
 #### [v1.5.0-PROD] — 2026-09-15 (Centro Autónomo de Gestión de Clientes, Sucursales, Talleres y Cuentas de Acceso)
 *Implementación del Centro Integral de Autogestión Empresarial para habilitar al Administrador de TCS Motriz a dar de alta, editar, auditar y gestionar el ciclo de vida completo de Empresas Matriz, Redes de Sucursales, Talleres Independientes y Credenciales de Acceso al Portal de Clientes sin necesidad de intervenir código ni base de datos manual.*
 
