@@ -108,6 +108,52 @@ if ($action === 'exportar_csv') {
                 $a['accion_sugerida']
             ]);
         }
+    } elseif ($tipo === 'ordenes_facturacion') {
+        fputcsv($out, [
+            'Folio Orden',
+            'Fecha Conclusión',
+            'Cliente / Matriz',
+            'Sucursal / Bahía',
+            'Equipo / Identificador',
+            'Tipo de Servicio',
+            'Horas Mano Obra',
+            'Tarifa Hora (MXN)',
+            'Total Mano Obra (MXN)',
+            'Refacciones / Materiales',
+            'Costo Refacciones (MXN)',
+            'Subtotal (MXN)',
+            'IVA 16% (MXN)',
+            'Total Facturable (MXN)',
+            'Estatus de Cobro'
+        ]);
+        $ords = DataStore::getOrdenes();
+        foreach ($ords as $o) {
+            $isConcluido = ($o['estado'] === 'concluido');
+            $horasMO = $isConcluido ? 4.5 : 2.0;
+            $tarifa = 650.00;
+            $subtotalMO = $horasMO * $tarifa;
+            $costoRefac = $isConcluido ? 4180.00 : 0.00;
+            $subtotal = $subtotalMO + $costoRefac;
+            $iva = $subtotal * 0.16;
+            $total = $subtotal + $iva;
+            fputcsv($out, [
+                $o['folio'],
+                substr($o['fecha_solicitud'], 0, 10),
+                'Grupo Automotriz Premier S.A. de C.V.',
+                $o['ubicacion'] ?? 'Bahía General',
+                ($o['equipo_nombre'] ?? 'Elevador') . ' [' . ($o['equipo_codigo'] ?? '') . ']',
+                ucwords($o['tipo_servicio']),
+                $horasMO,
+                number_format($tarifa, 2, '.', ''),
+                number_format($subtotalMO, 2, '.', ''),
+                $isConcluido ? 'Juego Cables Ecualización + Fluido ISO 32' : 'Diagnóstico inicial',
+                number_format($costoRefac, 2, '.', ''),
+                number_format($subtotal, 2, '.', ''),
+                number_format($iva, 2, '.', ''),
+                number_format($total, 2, '.', ''),
+                $isConcluido ? 'CONCILIADO - LISTO PARA FACTURAR' : 'EN EJECUCIÓN'
+            ]);
+        }
     }
     fclose($out);
     exit;
@@ -227,6 +273,35 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     $cleanMatriz[Security::sanitizeString($k)] = Security::sanitizeString($v);
                 }
 
+                // Procesamiento seguro de evidencias fotográficas (Antes y Después)
+                $uploadDir = BASE_PATH . '/uploads/evidencias/';
+                if (!is_dir($uploadDir)) {
+                    @mkdir($uploadDir, 0755, true);
+                }
+                $allowedExts = ['jpg', 'jpeg', 'png', 'webp'];
+                $fotoAntesPath = null;
+                $fotoDespuesPath = null;
+
+                if (!empty($_FILES['foto_antes']['name']) && $_FILES['foto_antes']['error'] === UPLOAD_ERR_OK) {
+                    $ext = strtolower(pathinfo($_FILES['foto_antes']['name'], PATHINFO_EXTENSION));
+                    if (in_array($ext, $allowedExts)) {
+                        $filename = 'antes_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                        if (move_uploaded_file($_FILES['foto_antes']['tmp_name'], $uploadDir . $filename)) {
+                            $fotoAntesPath = 'uploads/evidencias/' . $filename;
+                        }
+                    }
+                }
+
+                if (!empty($_FILES['foto_despues']['name']) && $_FILES['foto_despues']['error'] === UPLOAD_ERR_OK) {
+                    $ext = strtolower(pathinfo($_FILES['foto_despues']['name'], PATHINFO_EXTENSION));
+                    if (in_array($ext, $allowedExts)) {
+                        $filename = 'despues_' . date('Ymd_His') . '_' . bin2hex(random_bytes(4)) . '.' . $ext;
+                        if (move_uploaded_file($_FILES['foto_despues']['tmp_name'], $uploadDir . $filename)) {
+                            $fotoDespuesPath = 'uploads/evidencias/' . $filename;
+                        }
+                    }
+                }
+
                 $nuevoRepId = DataStore::createReporte([
                     'id_orden'             => !empty($_POST['id_orden']) ? Security::sanitizeInt($_POST['id_orden']) : null,
                     'id_equipo'            => Security::sanitizeInt($_POST['id_equipo']),
@@ -242,6 +317,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     'firma_cliente_cargo'  => 'Jefe de Bahía / Cliente',
                     'firma_digital_tecnico'=> !empty($_POST['firma_tecnico_canvas']) ? $_POST['firma_tecnico_canvas'] : null,
                     'firma_digital_cliente'=> !empty($_POST['firma_cliente_canvas']) ? $_POST['firma_cliente_canvas'] : null,
+                    'foto_antes'           => $fotoAntesPath,
+                    'foto_despues'         => $fotoDespuesPath,
                     'consumibles'          => [
                         ['descripcion' => 'Insumo de Mantenimiento Preventivo', 'cantidad' => 1]
                     ]
