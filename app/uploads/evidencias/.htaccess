@@ -1,0 +1,7 @@
+# Impedir ejecución de scripts en carpeta de uploads (OWASP A01 / A03)
+<FilesMatch "(?i)\.(php|php3|php4|php5|phtml|pl|py|jsp|asp|htm|shtml|sh|cgi)$">
+    Order Deny,Allow
+    Deny from all
+</FilesMatch>
+
+Options -Indexes -ExecCGI
