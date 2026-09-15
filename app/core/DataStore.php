@@ -1142,9 +1142,123 @@ class DataStore {
         return false;
     }
 
+    public static function getRefaccionById(int $id): ?array {
+        $inventario = self::getInventario();
+        foreach ($inventario as $item) {
+            if ($item['id'] == $id) return $item;
+        }
+        return null;
+    }
+
+    public static function updateRefaccion(int $id, array $fields): bool {
+        $data = self::loadData();
+        foreach ($data['inventario_refacciones'] as &$item) {
+            if ($item['id'] == $id) {
+                foreach ($fields as $k => $v) {
+                    if ($k !== 'id' && $k !== 'created_at') {
+                        $item[$k] = $v;
+                    }
+                }
+                $item['updated_at'] = date('Y-m-d H:i:s');
+                self::saveData($data);
+                Logger::log('UPDATE_REFACCION', 'inventario_refacciones', (string)$id, ['codigo' => $item['codigo_parte'] ?? '']);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function deleteRefaccion(int $id): bool {
+        $data = self::loadData();
+        $initialCount = count($data['inventario_refacciones'] ?? []);
+        $data['inventario_refacciones'] = array_values(array_filter(
+            $data['inventario_refacciones'] ?? [],
+            fn($item) => $item['id'] != $id
+        ));
+
+        if (count($data['inventario_refacciones']) < $initialCount) {
+            self::saveData($data);
+            Logger::log('DELETE_REFACCION', 'inventario_refacciones', (string)$id);
+            return true;
+        }
+        return false;
+    }
+
+    public static function registrarMovimientoStock(int $idRefaccion, int $cantidad, string $tipo, string $motivo, string $referencia = '', int $idUsuario = 1): bool {
+        $data = self::loadData();
+        $refIndex = null;
+        foreach ($data['inventario_refacciones'] as $idx => $item) {
+            if ($item['id'] == $idRefaccion) {
+                $refIndex = $idx;
+                break;
+            }
+        }
+        if ($refIndex === null) return false;
+
+        $ref = &$data['inventario_refacciones'][$refIndex];
+        $stockAnterior = (int)$ref['stock_actual'];
+        $cantidad = abs($cantidad);
+
+        if ($tipo === 'entrada') {
+            $stockNuevo = $stockAnterior + $cantidad;
+        } elseif ($tipo === 'salida') {
+            $stockNuevo = max(0, $stockAnterior - $cantidad);
+        } else { // ajuste
+            $stockNuevo = $cantidad;
+        }
+
+        $ref['stock_actual'] = $stockNuevo;
+
+        $user = self::getUsuarioById($idUsuario);
+        $userNombre = $user ? $user['nombre'] : 'Administrador TCS';
+
+        $movId = count($data['movimientos_inventario'] ?? []) ? max(array_column($data['movimientos_inventario'] ?? [['id' => 0]], 'id')) + 1 : 1;
+        $newMov = [
+            'id' => $movId,
+            'id_refaccion' => $idRefaccion,
+            'codigo_parte' => $ref['codigo_parte'],
+            'descripcion' => $ref['descripcion'],
+            'tipo_movimiento' => $tipo,
+            'cantidad' => $cantidad,
+            'stock_anterior' => $stockAnterior,
+            'stock_nuevo' => $stockNuevo,
+            'motivo' => $motivo,
+            'referencia' => $referencia,
+            'id_usuario' => $idUsuario,
+            'usuario_nombre' => $userNombre,
+            'created_at' => date('Y-m-d H:i:s')
+        ];
+
+        if (!isset($data['movimientos_inventario'])) {
+            $data['movimientos_inventario'] = [];
+        }
+        array_unshift($data['movimientos_inventario'], $newMov);
+
+        self::saveData($data);
+        Logger::log('STOCK_MOVEMENT', 'movimientos_inventario', (string)$movId, ['refaccion' => $ref['codigo_parte'], 'tipo' => $tipo, 'nuevo_stock' => $stockNuevo]);
+        return true;
+    }
+
+    public static function getMovimientosInventario(?int $idRefaccion = null): array {
+        $data = self::loadData();
+        $movs = $data['movimientos_inventario'] ?? [];
+        if ($idRefaccion !== null) {
+            return array_values(array_filter($movs, fn($m) => ($m['id_refaccion'] ?? 0) == $idRefaccion));
+        }
+        return $movs;
+    }
+
     public static function getProveedores(): array {
         $data = self::loadData();
         return $data['proveedores'] ?? [];
+    }
+
+    public static function getProveedorById(int $id): ?array {
+        $proveedores = self::getProveedores();
+        foreach ($proveedores as $p) {
+            if ($p['id'] == $id) return $p;
+        }
+        return null;
     }
 
     public static function createProveedor(array $prov): int {
@@ -1156,6 +1270,165 @@ class DataStore {
         self::saveData($data);
         Logger::log('CREATE_PROVEEDOR', 'proveedores', (string)$id, ['razon_social' => $prov['razon_social']]);
         return $id;
+    }
+
+    public static function updateProveedor(int $id, array $fields): bool {
+        $data = self::loadData();
+        foreach ($data['proveedores'] as &$p) {
+            if ($p['id'] == $id) {
+                foreach ($fields as $k => $v) {
+                    if ($k !== 'id' && $k !== 'created_at') {
+                        $p[$k] = $v;
+                    }
+                }
+                $p['updated_at'] = date('Y-m-d H:i:s');
+                self::saveData($data);
+                Logger::log('UPDATE_PROVEEDOR', 'proveedores', (string)$id, ['razon_social' => $p['razon_social'] ?? '']);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function deleteProveedor(int $id): bool {
+        $data = self::loadData();
+        $initialCount = count($data['proveedores'] ?? []);
+        $data['proveedores'] = array_values(array_filter(
+            $data['proveedores'] ?? [],
+            fn($p) => $p['id'] != $id
+        ));
+
+        if (count($data['proveedores']) < $initialCount) {
+            self::saveData($data);
+            Logger::log('DELETE_PROVEEDOR', 'proveedores', (string)$id);
+            return true;
+        }
+        return false;
+    }
+
+    public static function getRefaccionesByProveedor(int $idProveedor): array {
+        $inv = self::getInventario();
+        return array_values(array_filter($inv, fn($item) => ($item['id_proveedor'] ?? 0) == $idProveedor));
+    }
+
+    // ==========================================
+    // LOGÍSTICA: GUÍAS DE ENVÍO Y DESPACHOS
+    // ==========================================
+    public static function getGuiasEnvio(?string $filtroEstado = null): array {
+        $data = self::loadData();
+        $guias = $data['guias_envio'] ?? [];
+        $sucursales = array_column($data['sucursales'] ?? [], null, 'id');
+        $matrices = array_column($data['matrices'] ?? [], null, 'id');
+        $talleres = array_column($data['talleres'] ?? [], null, 'id');
+        $usuarios = array_column($data['usuarios'] ?? [], null, 'id');
+
+        $result = [];
+        foreach ($guias as $g) {
+            if ($filtroEstado !== null && $g['estado'] !== $filtroEstado) {
+                continue;
+            }
+
+            // Resolver nombres de destino
+            $destinoEtiqueta = 'Destino no asignado';
+            if (!empty($g['id_sucursal']) && isset($sucursales[$g['id_sucursal']])) {
+                $suc = $sucursales[$g['id_sucursal']];
+                $matName = $matrices[$suc['id_matriz']]['razon_social'] ?? 'Corporativo';
+                $destinoEtiqueta = $suc['nombre'] . ' (' . $matName . ')';
+            } elseif (!empty($g['id_taller']) && isset($talleres[$g['id_taller']])) {
+                $destinoEtiqueta = $talleres[$g['id_taller']]['razon_social'] . ' (Taller Único)';
+            } elseif (!empty($g['id_tecnico']) && isset($usuarios[$g['id_tecnico']])) {
+                $destinoEtiqueta = $usuarios[$g['id_tecnico']]['nombre'] . ' (Técnico TCS en Campo)';
+            }
+
+            $g['destino_etiqueta'] = $destinoEtiqueta;
+            $result[] = $g;
+        }
+        return $result;
+    }
+
+    public static function getGuiaEnvioById(int $id): ?array {
+        $guias = self::getGuiasEnvio();
+        foreach ($guias as $g) {
+            if ($g['id'] == $id) return $g;
+        }
+        return null;
+    }
+
+    public static function createGuiaEnvio(array $guia, bool $descontarStock = true): int {
+        $data = self::loadData();
+        $id = count($data['guias_envio'] ?? []) ? max(array_column($data['guias_envio'] ?? [['id' => 0]], 'id')) + 1 : 1;
+        $guia['id'] = $id;
+        $guia['created_at'] = date('Y-m-d H:i:s');
+        if (empty($guia['folio_guia'])) {
+            $guia['folio_guia'] = 'TCS-ENV-' . date('Y') . '-' . str_pad((string)$id, 3, '0', STR_PAD_LEFT);
+        }
+
+        if (!isset($data['guias_envio'])) {
+            $data['guias_envio'] = [];
+        }
+        array_unshift($data['guias_envio'], $guia);
+        self::saveData($data);
+
+        // Descontar inventario si se especificó
+        if ($descontarStock && !empty($guia['piezas'])) {
+            foreach ($guia['piezas'] as $p) {
+                if (!empty($p['id_refaccion']) && !empty($p['cantidad'])) {
+                    self::registrarMovimientoStock(
+                        (int)$p['id_refaccion'],
+                        (int)$p['cantidad'],
+                        'salida',
+                        'Despacho por envío logístico ' . $guia['folio_guia'] . ' (' . ($guia['transportista'] ?? 'Paquetería') . ')',
+                        $guia['folio_guia']
+                    );
+                }
+            }
+        }
+
+        Logger::log('CREATE_GUIA_ENVIO', 'guias_envio', (string)$id, [
+            'folio' => $guia['folio_guia'],
+            'carrier' => $guia['transportista'] ?? '',
+            'destino' => $guia['destinatario_nombre'] ?? ''
+        ]);
+        return $id;
+    }
+
+    public static function updateEstadoGuia(int $id, string $nuevoEstado, ?string $notas = null, ?string $quienRecibio = null): bool {
+        $data = self::loadData();
+        foreach ($data['guias_envio'] as &$g) {
+            if ($g['id'] == $id) {
+                $g['estado'] = $nuevoEstado;
+                if ($nuevoEstado === 'entregado') {
+                    $g['fecha_entrega_real'] = date('Y-m-d H:i:s');
+                    if ($quienRecibio !== null) {
+                        $g['quien_recibio'] = $quienRecibio;
+                    }
+                }
+                if ($notas !== null && trim($notas) !== '') {
+                    $g['notas'] = trim(($g['notas'] ?? '') . ' | ' . date('d/m/Y H:i') . ': ' . $notas);
+                }
+                $g['updated_at'] = date('Y-m-d H:i:s');
+                self::saveData($data);
+                Logger::log('UPDATE_ESTADO_GUIA', 'guias_envio', (string)$id, ['nuevo_estado' => $nuevoEstado]);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public static function deleteGuiaEnvio(int $id): bool {
+        $data = self::loadData();
+        $initialCount = count($data['guias_envio'] ?? []);
+        $data['guias_envio'] = array_values(array_filter(
+            $data['guias_envio'] ?? [],
+            fn($g) => $g['id'] != $id
+        ));
+
+        if (count($data['guias_envio']) < $initialCount) {
+            self::saveData($data);
+            Logger::log('DELETE_GUIA_ENVIO', 'guias_envio', (string)$id);
+            return true;
+        }
+        return false;
     }
 
     public static function getMensajes(): array {
