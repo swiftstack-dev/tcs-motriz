@@ -9,6 +9,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initRoleSwitchers();
     initFilters();
     initPrintButtons();
+    initSignatures();
 });
 
 /**
@@ -210,3 +211,83 @@ function verExpedienteEquipo(id) {
 function verReporteOficial(id) {
     window.location.href = `index.php?view=reportes&reporte_id=${id}`;
 }
+
+/**
+ * Inicializar todos los pads de firma interactivos
+ */
+function initSignatures() {
+    initSignaturePad('signature-canvas-cliente', 'firma_cliente_canvas');
+    initSignaturePad('signature-canvas-tecnico', 'firma_tecnico_canvas');
+}
+
+/**
+ * Inicializador de Canvas de Firma Táctil (Móvil / Tablet / Mouse)
+ */
+function initSignaturePad(canvasId, inputHiddenId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const input = document.getElementById(inputHiddenId);
+    
+    let isDrawing = false;
+    let hasDrawn = false;
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
+
+    function getPos(e) {
+        const rect = canvas.getBoundingClientRect();
+        const clientX = (e.touches && e.touches.length > 0) ? e.touches[0].clientX : e.clientX;
+        const clientY = (e.touches && e.touches.length > 0) ? e.touches[0].clientY : e.clientY;
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        return {
+            x: (clientX - rect.left) * scaleX,
+            y: (clientY - rect.top) * scaleY
+        };
+    }
+
+    function startDraw(e) {
+        isDrawing = true;
+        const pos = getPos(e);
+        ctx.beginPath();
+        ctx.moveTo(pos.x, pos.y);
+        if (e.cancelable) e.preventDefault();
+    }
+
+    function draw(e) {
+        if (!isDrawing) return;
+        const pos = getPos(e);
+        ctx.lineTo(pos.x, pos.y);
+        ctx.stroke();
+        hasDrawn = true;
+        if (e.cancelable) e.preventDefault();
+    }
+
+    function endDraw() {
+        if (!isDrawing) return;
+        isDrawing = false;
+        if (hasDrawn && input) {
+            input.value = canvas.toDataURL('image/png');
+        }
+    }
+
+    canvas.addEventListener('mousedown', startDraw);
+    canvas.addEventListener('mousemove', draw);
+    window.addEventListener('mouseup', endDraw);
+
+    canvas.addEventListener('touchstart', startDraw, { passive: false });
+    canvas.addEventListener('touchmove', draw, { passive: false });
+    window.addEventListener('touchend', endDraw);
+}
+
+function clearCanvas(canvasId, inputHiddenId) {
+    const canvas = document.getElementById(canvasId);
+    if (!canvas) return;
+    const ctx = canvas.getContext('2d');
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    const input = document.getElementById(inputHiddenId);
+    if (input) input.value = '';
+}
+
