@@ -1,0 +1,62 @@
+# =====================================================================
+# TCS MOTRIZ - SEGURIDAD PERIMETRAL Y REGLAS DE HOSTINGER / APACHE
+# Cumplimiento OWASP Top 10 e ISO 27001 (A.13.1 Control Perimetral)
+# =====================================================================
+
+# 1. Deshabilitar listado de directorios
+Options -Indexes -MultiViews
+
+# 2. Establecer juego de caracteres predeterminado
+AddDefaultCharset UTF-8
+
+# 3. Prohibir acceso directo a archivos sensibles de configuración, base de datos y logs
+<FilesMatch "(^#.*#|\.(bak|conf|dist|fla|in[ci]|log|psd|sh|sql|sw[op]|env|git.*|md|json|yml|yaml))$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 4. Proteger archivos de configuración PHP críticos
+<FilesMatch "^(database\.php|security\.php|config\.php)$">
+    <IfModule mod_authz_core.c>
+        Require all denied
+    </IfModule>
+    <IfModule !mod_authz_core.c>
+        Order deny,allow
+        Deny from all
+    </IfModule>
+</FilesMatch>
+
+# 5. Cabeceras HTTP de Seguridad Perimetral (OWASP A05: Security Misconfiguration)
+<IfModule mod_headers.c>
+    # Prevenir Clickjacking
+    Header always set X-Frame-Options "SAMEORIGIN"
+    
+    # Prevenir MIME Type Sniffing
+    Header always set X-Content-Type-Options "nosniff"
+    
+    # Filtro XSS para navegadores antiguos
+    Header always set X-XSS-Protection "1; mode=block"
+    
+    # Política de Referrer para evitar fuga de tokens en URL
+    Header always set Referrer-Policy "strict-origin-when-cross-origin"
+    
+    # Política de Permisos (Hardware restrictivo)
+    Header always set Permissions-Policy "camera=(), microphone=(), geolocation=()"
+    
+    # Content Security Policy (Alineada con recursos locales y Google Fonts)
+    Header always set Content-Security-Policy "default-src 'self' 'unsafe-inline' 'unsafe-eval' https://fonts.googleapis.com https://fonts.gstatic.com data: blob:;"
+</IfModule>
+
+# 6. Forzar HTTPS en producción (Hostinger con SSL activado)
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteCond %{HTTP_HOST} !^localhost(:\d+)?$
+    RewriteCond %{HTTP_HOST} !^127\.0\.0\.1(:\d+)?$
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+</IfModule>

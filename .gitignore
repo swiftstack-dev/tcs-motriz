@@ -1,0 +1,7 @@
+# Archivos temporales y de depuración
+scratch/
+*.tmp
+*.log
+app/logs/*.log
+!app/logs/.htaccess
+.system_generated/
