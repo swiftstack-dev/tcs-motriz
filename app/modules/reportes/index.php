@@ -42,18 +42,24 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
     </div>
 
     <div class="official-report-sheet">
+        <!-- MARCA DE AGUA CORPORATIVA OFICIAL -->
+        <div style="position: absolute; top: 48%; left: 50%; transform: translate(-50%, -50%); opacity: 0.045; pointer-events: none; z-index: 0; user-select: none;">
+            <img src="assets/img/logo-tcs.png" alt="Watermark TCS" style="width: 440px; filter: grayscale(100%); display: block;">
+        </div>
+
         <!-- CABECERA DEL DOCUMENTO -->
-        <div class="report-header-box">
-            <div style="display: flex; align-items: center; gap: 14px;">
-                <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 48px; object-fit: contain;" />
+        <div class="report-header-box" style="position: relative; z-index: 1;">
+            <div style="display: flex; align-items: center; gap: 16px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 56px; object-fit: contain;" />
                 <div>
-                    <div style="font-size: 14px; font-weight: 800; color: #b91c1c; text-transform: uppercase;">TCS MOTRIZ — ORDEN DE TRABAJO Y MANTENIMIENTO TÉCNICO</div>
-                    <div style="font-size: 11px; color: #475569;">Sistema Integrado de Calidad y Seguridad Industrial • Servicio Nacional</div>
+                    <div style="font-size: 15px; font-weight: 900; color: #b91c1c; text-transform: uppercase; letter-spacing: 0.5px;">TCS MOTRIZ — ORDEN DE TRABAJO Y MANTENIMIENTO TÉCNICO</div>
+                    <div style="font-size: 11px; color: #475569; font-weight: 600;">Sistema Integrado de Calidad y Seguridad Industrial • Servicio Nacional</div>
+                    <div style="font-size: 10px; color: #0284c7; font-weight: 700;">DICTAMEN DE OPERATIVIDAD Y CUMPLIMIENTO NORMATIVO</div>
                 </div>
             </div>
             <div style="text-align: right; font-size: 12px; line-height: 1.4;">
-                <div style="font-weight: 800; font-size: 14px; color: #0f172a;">FOLIO: <?= Security::e($reporteSeleccionado['folio_reporte']) ?></div>
-                <div>Fecha: <?= Security::e($reporteSeleccionado['fecha_servicio']) ?></div>
+                <div style="font-weight: 900; font-size: 15px; color: #0f172a; font-family: monospace;">FOLIO: <?= Security::e($reporteSeleccionado['folio_reporte']) ?></div>
+                <div style="color: #334155;">Fecha: <?= Security::e($reporteSeleccionado['fecha_servicio']) ?></div>
                 <div style="font-size: 10px; color: #64748b;">DOC: TCS-RMT-2026 | REV: 02</div>
             </div>
         </div>
@@ -195,6 +201,18 @@ $equipoPrevioId = isset($_GET['equipo_id']) ? Security::sanitizeInt($_GET['equip
     </div>
 
     <div class="panel-card">
+        <!-- CABECERA DE CERTIFICACIÓN TCS -->
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--border-subtle); padding-bottom: 16px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+            <div style="display: flex; align-items: center; gap: 14px;">
+                <img src="assets/img/logo-tcs.png" alt="TCS Motriz" style="height: 44px; object-fit: contain;">
+                <div>
+                    <div style="font-size: 15px; font-weight: 800; color: #fff; letter-spacing: 0.3px;">Peritaje y Emisión de Reporte Técnico Oficial</div>
+                    <div style="font-size: 11px; color: var(--text-secondary);">Validación de tolerancias, pruebas estáticas/dinámicas y sellos de seguridad</div>
+                </div>
+            </div>
+            <span class="badge-status status-operativo" style="padding: 6px 12px;">ISO 9001 / NOM-OSHA</span>
+        </div>
+
         <form method="POST" action="index.php?action=guardar_reporte">
             <?= csrf_field() ?>
             <?php if ($ordenPreviaId): ?>
